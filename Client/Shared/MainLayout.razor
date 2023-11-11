@@ -1,17 +1,17 @@
 ﻿@inherits LayoutComponentBase
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
+<div class="Main">
+    <div class="Header">
+        <button class="CloseReferenceButton" style="display: @(ShowingReference ? "inherit" : "none")"></button>
+        <span></span>
     </div>
-
-    <main>
-        <div class="top-row px-4">
-            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
-        </div>
-
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
+    <div class="Content">
+        @Body
+    </div>
+    <div class="Footer"></div>
 </div>
+
+@code {
+    [Parameter]
+    public bool ShowingReference { get; set; }
+}

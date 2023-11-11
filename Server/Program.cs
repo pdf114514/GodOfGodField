@@ -10,6 +10,12 @@ public class Program {
             Resources.UpdateResources().Wait();
             Console.WriteLine("Updated resources.");
             return;
+        } else if (args.Contains("--supported-languages")) {
+            Console.WriteLine(string.Join(", ", Client.Localization.SupportedLanguages));
+            return;
+        } else if (args.Contains("--show-resources")) {
+            Console.WriteLine(string.Join('\n', typeof(Resources).Assembly.GetManifestResourceNames()));
+            return;
         }
 
         var builder = WebApplication.CreateBuilder(args);

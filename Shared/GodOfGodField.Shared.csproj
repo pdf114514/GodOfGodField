@@ -9,4 +9,9 @@
   <ItemGroup>
     <SupportedPlatform Include="browser" />
   </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include=".\Resources.json" />
+    <EmbeddedResource Include=".\Resources\**\*" />
+  </ItemGroup>
 </Project>

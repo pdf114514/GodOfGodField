@@ -18,6 +18,8 @@ public class ApiClient {
 
     public async Task<AccountInfo> GetAccountInfo() => (await (await Http.PostAsJsonAsync<GetAccountInfoRequest>("/api/getaccountinfo", new() { IdToken = AppState.IdToken })).Content.ReadFromJsonAsync<AccountInfo>())!;
 
+    public async Task<RefreshTokenResponse> RefreshToken() => (await (await Http.PostAsJsonAsync<RefreshTokenRequest>("/api/refreshtoken", new() { RefreshToken = AppState.RefreshToken })).Content.ReadFromJsonAsync<RefreshTokenResponse>())!;
+
     public async Task<GFSession> GetSession() {
         var request = new HttpRequestMessage(HttpMethod.Post, "/api/getsession");
         request.Headers.Authorization = new("Bearer", AppState.IdToken);

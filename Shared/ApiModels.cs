@@ -26,6 +26,20 @@ public class AccountInfo {
     }
 }
 
+public class RefreshTokenRequest {
+    [K("refreshToken")] public required string RefreshToken { get; init; }
+}
+
+public class RefreshTokenResponse {
+    [K("access_token")] public required string AccessToken { get; init; }
+    [K("expires_in")] public required string ExpiresIn { get; init; }
+    [K("id_token")] public required string IdToken { get; init; }
+    [K("project_id")] public required string ProjectId { get; init; }
+    [K("refresh_token")] public required string RefreshToken { get; init; }
+    [K("token_type")] public required string TokenType { get; init; }
+    [K("user_id")] public required string UserId { get; init; }
+}
+
 public class GetGFSessionRequest {
     [K("count")] public required int Count { get; init; }
     [K("ofs")] public required int Ofs { get; init; }

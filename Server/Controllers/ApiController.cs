@@ -29,6 +29,18 @@ public class ApiController : ControllerBase {
         return JsonSerializer.Deserialize<AccountInfo>(await response.Content.ReadAsStringAsync())!;
     }
 
+    [HttpPost("refreshtoken")]
+    public async Task<RefreshTokenResponse> RefreshToken([FromBody] RefreshTokenRequest data) {
+        using var request = new HttpRequestMessage(HttpMethod.Post, $"https://securetoken.googleapis.com/v1/token?key={FirebaseKey}") {
+            Content = new FormUrlEncodedContent(new Dictionary<string, string> {
+                ["grant_type"] = "refresh_token",
+                ["refresh_token"] = data.RefreshToken
+            })
+        };
+        using var response = await Http.SendAsync(request);
+        return JsonSerializer.Deserialize<RefreshTokenResponse>(await response.Content.ReadAsStringAsync())!;
+    }
+
     [HttpPost("getsession")]
     public async Task<GFSession> GetSession() {
         var uriBuilder = new UriBuilder("https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel");

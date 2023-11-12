@@ -1,4 +1,5 @@
 using GodOfGodField.Client;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.JSInterop;
@@ -13,7 +14,8 @@ public class Program {
 
         builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
         builder.Services.AddScoped(sp => new Localization());
-        builder.Services.AddScoped(sp => new ApplicationState(sp.GetRequiredService<IJSRuntime>()));
+        builder.Services.AddScoped(sp => new ApplicationState(sp.GetRequiredService<IJSRuntime>(), sp.GetRequiredService<NavigationManager>()));
+        builder.Services.AddScoped(sp => new ApiClient(sp.GetRequiredService<HttpClient>(), sp.GetRequiredService<ApplicationState>()));
 
         await builder.Build().RunAsync();
     }

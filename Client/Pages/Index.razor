@@ -4,14 +4,44 @@
 
 <div class="Index">
     <p>@L["texts.home.userName"]</p>
-    <input class="InputUserName" type="text" @bind-value="AppState.UserName" />
-    <div class="ButtonLogin">@L["texts.home.setUserName"]</div>
+    <input class="InputUserName" type="text" @bind-value="UserName" />
+    <div class="ButtonLogin" @onclick="Login">@L["texts.home.setUserName"]</div>
 </div>
 
 @code {
+    string UserName = string.Empty;
+
+    protected override async Task OnInitializedAsync() {
+        await AppState.Load();
+        UserName = AppState.UserName;
+    }
+
     protected override async void OnAfterRender(bool firstRender) {
         if (firstRender) {
             await JS.SetBackgroundImage(await JS.GetElementByClassName("Content"), new(Resources.GetResource("images.screens.home.png")!));
         }
+    }
+
+    async Task Login() {
+        await JS.PlayAudio(new(Resources.GetResource("audio.click.mp3")!));
+        AppState.UserName = UserName.Trim();
+        await AppState.Save();
+
+        if (string.IsNullOrWhiteSpace(AppState.UserName)) {
+            await JS.PlayAudio(new(Resources.GetResource("audio.alert.mp3")!));
+            JS.ShowMessage(L["texts.home.userNameEmpty"]);
+            return;
+        }
+
+        if (string.IsNullOrEmpty(AppState.IdToken)) {
+            var signup = await Api.SignUp();
+            AppState.IdToken = signup.IdToken;
+            AppState.LocalId = signup.LocalId;
+            AppState.ExpiresIn = signup.ExpiresIn;
+            AppState.RefreshToken = signup.RefreshToken;
+            await AppState.Save();
+        }
+
+        await JS.Alert(System.Text.Json.JsonSerializer.Serialize(await Api.GetAccountInfo()));
     }
 }

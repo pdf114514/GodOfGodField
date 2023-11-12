@@ -10,6 +10,62 @@
     width: 100%;
     height: var(--HeaderHeight);
     display: flex;
+    justify-content: space-between;
+}
+
+.ButtonCloseReference {
+    width: 100px;
+    height: calc(var(--HeaderHeight) - 6px);
+    margin: 3px 10px;
+    cursor: pointer;
+    border-radius: 5px;
+    background-color: rgb(238, 255, 238);
+}
+
+.ButtonCloseReference > div:first-child {
+    position: relative;
+    top: 2px;
+    left: 20px;
+    height: 20px;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    border-right: 20px solid rgb(0, 143, 111);
+}
+
+.ButtonCloseReference > div:last-child {
+    position: relative;
+    top: 9px;
+    left: 12px;
+    width: 40px;
+    height: 6px;
+    background-color: rgb(0, 143, 111);
+}
+
+.ButtonCloseReference:hover > div:first-child {
+    border-right: 20px solid rgb(0, 163, 131);
+}
+
+.ButtonCloseReference:hover > div:last-child {
+    background-color: rgb(0, 163, 131);
+}
+
+.ButtonReference {
+    width: 100px;
+    height: calc(var(--HeaderHeight) - 6px);
+    margin: 3px 10px;
+    cursor: pointer;
+    border-radius: 5px;
+    background-color: rgb(238, 255, 238);
+    color: rgb(0, 143, 111);
+    font-size: 20px;
+    font-family: sans-serif;
+    text-align: center;
+    line-height: 24px;
+    user-select: none;
+}
+
+.ButtonReference:hover {
+    color: rgb(0, 163, 131);
 }
 
 .Footer {

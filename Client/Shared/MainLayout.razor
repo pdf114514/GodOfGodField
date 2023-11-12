@@ -2,8 +2,13 @@
 
 <div class="Main">
     <div class="Header">
-        <button class="CloseReferenceButton" style="display: @(ShowingReference ? "inherit" : "none")"></button>
+        <!-- TODO make wrapper div to make button's background ligher when hover -->
+        <div class="ButtonCloseReference" @onclick="CloseReference" style="display: @(ShowingReference ? "inherit" : "none")">
+            <div /><div />
+        </div>
         <span></span>
+        <!-- TODO make wrapper div to make button's background ligher when hover -->
+        <div class="ButtonReference" @onclick="ToggleShowingReference">@L["texts.reference.reference"]</div>
     </div>
     <div class="Content">
         @Body
@@ -14,8 +19,18 @@
 @code {
     bool ShowingReference = false;
 
-    protected override async Task OnInitializedAsync() {
-        await AppState.Load();
+    protected override void OnInitialized() {
         Navigation.NavigateTo("/");
+    }
+
+    async Task ToggleShowingReference() {
+        await JS.PlayAudio(new(Resources.GetResource("audio.click.mp3")!));
+        // ShowingReference = !ShowingReference;
+        await JS.Alert("Not implemented yet");
+    }
+
+    async Task CloseReference() {
+        await JS.PlayAudio(new(Resources.GetResource("audio.click.mp3")!));
+        ShowingReference = false;
     }
 }

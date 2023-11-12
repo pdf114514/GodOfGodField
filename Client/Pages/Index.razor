@@ -37,7 +37,7 @@
             var signup = await Api.SignUp();
             AppState.IdToken = signup.IdToken;
             AppState.LocalId = signup.LocalId;
-            AppState.ExpiresIn = signup.ExpiresIn;
+            AppState.ExpiresIn = int.Parse(signup.ExpiresIn);
             AppState.RefreshToken = signup.RefreshToken;
             await AppState.Save();
         }

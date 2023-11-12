@@ -3,7 +3,7 @@ using K = System.Text.Json.Serialization.JsonPropertyNameAttribute;
 namespace GodOfGodField.Shared;
 
 public class SignUpResponse {
-    [K("expiresIn")] public required int ExpiresIn { get; init; }
+    [K("expiresIn")] public required string ExpiresIn { get; init; }
     [K("idToken")] public required string IdToken { get; init; }
     [K("kind")] public required string Kind { get; init; }
     [K("localId")] public required string LocalId { get; init; }

@@ -12,6 +12,10 @@
 </div>
 
 @code {
-    [Parameter]
-    public bool ShowingReference { get; set; }
+    bool ShowingReference = false;
+
+    protected override async Task OnInitializedAsync() {
+        await AppState.Load();
+        Navigation.NavigateTo("/");
+    }
 }

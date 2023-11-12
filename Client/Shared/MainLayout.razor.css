@@ -1,5 +1,6 @@
 .Main {
     background-color: rgb(0, 143, 111);
+    height: 100vh;
     --HeaderHeight: 30px;
     --FooterHeight: 30px;
     --ContentHeight: calc(100vh - var(--HeaderHeight) - var(--FooterHeight));
@@ -15,6 +16,7 @@
     width: 100%;
     height: var(--FooterHeight);
     display: flex;
+    bottom: 0px;
 }
 
 .Content {
@@ -23,4 +25,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    background-size: max(100%, 500px) auto;
+    background-position: top;
+    background-repeat: no-repeat;
 }

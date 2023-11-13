@@ -1,6 +1,6 @@
 .Index {
-    width: min(calc(100vw - 80px), 400px);
-    height: calc(100vh - 60vw);
+    width: min(calc(100dvw - 80px), 400px);
+    height: calc(100dvh - 60dvw);
     text-align: -webkit-center;
 }
 

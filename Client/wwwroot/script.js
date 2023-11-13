@@ -16,6 +16,7 @@ async function SetBackgroundImage(elementRef, stream) {
     image.onload = () => {
         elementRef.style.backgroundImage = `url(\"${url}\")`;
         setTimeout(() => URL.revokeObjectURL(url), 100);
+        image.remove();
     }
     image.src = url;
 }
@@ -26,7 +27,10 @@ async function PlayAudio(stream) {
     const url = URL.createObjectURL(blob);
     const audio = new Audio(url);
     audio.play();
-    audio.onended = () => URL.revokeObjectURL(url);
+    audio.onended = () => {
+        URL.revokeObjectURL(url);
+        audio.remove();
+    }
 }
 
 function ShowMessage(message) {

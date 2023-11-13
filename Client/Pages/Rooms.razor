@@ -1,0 +1,23 @@
+@page "/rooms"
+
+<div class="Rooms">
+    <div class="Room Training">Training: @UserCount.Training</div>
+    <div class="Room Hidden">Hidden: @UserCount.Hidden</div>
+    <div class="Room Duel">Duel: @UserCount.Duel</div>
+</div>
+
+@code {
+    UserCount UserCount = new() { Duel = -1, Hidden = -1, Training = -1 };
+
+    protected override async void OnAfterRender(bool firstRender) {
+        if (firstRender) {
+            try {
+                UserCount = await Api.GetUserCount();
+            } catch (System.Text.Json.JsonException) {
+                await Api.Refresh();
+                UserCount = await Api.GetUserCount();
+            }
+            await JS.Alert(JsonSerializer.Serialize(UserCount));
+        }
+    }
+}

@@ -46,15 +46,13 @@
         try {
             accountInfo = await Api.GetAccountInfo();
         } catch (System.Text.Json.JsonException) {
-            var refreshed = await Api.RefreshToken();
-            AppState.IdToken = refreshed.IdToken;
-            // AppState.LocalId = refreshed.UserId; // Correct?
-            AppState.ExpiresIn = int.Parse(refreshed.ExpiresIn);
-            AppState.RefreshToken = refreshed.RefreshToken;
-            await AppState.Save();
+            await Api.Refresh();
             accountInfo = await Api.GetAccountInfo();
         }
 
-        await JS.Alert(System.Text.Json.JsonSerializer.Serialize(accountInfo));
+        // await JS.Alert(System.Text.Json.JsonSerializer.Serialize(accountInfo));
+
+        AppState.Session = await Api.GetSession();
+        Navigation.NavigateTo("/rooms");
     }
 }

@@ -20,11 +20,20 @@ public class ApiClient {
 
     public async Task<RefreshTokenResponse> RefreshToken() => (await (await Http.PostAsJsonAsync<RefreshTokenRequest>("/api/refreshtoken", new() { RefreshToken = AppState.RefreshToken })).Content.ReadFromJsonAsync<RefreshTokenResponse>())!;
 
+    public async Task Refresh() {
+        var refresh = await RefreshToken();
+        AppState.IdToken = refresh.IdToken;
+        AppState.RefreshToken = refresh.RefreshToken;
+        AppState.ExpiresIn = int.Parse(refresh.ExpiresIn);
+        // AppState.LocalId = refreshed.UserId; // Correct?
+        await AppState.Save();
+    }
+
     public async Task<GFSession> GetSession() {
         var request = new HttpRequestMessage(HttpMethod.Post, "/api/getsession");
         request.Headers.Authorization = new("Bearer", AppState.IdToken);
         return (await (await Http.SendAsync(request)).Content.ReadFromJsonAsync<GFSession>())!;
     }
 
-    public async Task<UserCount> GetUserCount() => (await (await Http.PostAsJsonAsync<GFSession>("/api/getusercount", new() { GSessionId = AppState.GSessionId, SessionId = AppState.SessionId })).Content.ReadFromJsonAsync<UserCount>())!;
+    public async Task<UserCount> GetUserCount() => (await (await Http.PostAsJsonAsync("/api/getusercount", AppState.Session)).Content.ReadFromJsonAsync<UserCount>())!;
 }

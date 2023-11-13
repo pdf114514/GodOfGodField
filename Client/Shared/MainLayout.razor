@@ -13,7 +13,9 @@
     <div class="Content">
         @Body
     </div>
-    <div class="Footer"></div>
+    <div class="Footer">
+        <span></span>
+    </div>
 </div>
 
 @code {
@@ -23,7 +25,16 @@
         Navigation.NavigateTo("/");
     }
 
+    bool S = false;
+    Random RNG = new();
     async Task ToggleShowingReference() {
+        if (S) {
+            var a = typeof(Resources).Assembly;
+            var names = a.GetManifestResourceNames().Where(x => x.StartsWith($"{a.GetName().Name}.Resources.audio", true, null)).ToArray();
+            await JS.PlayAudio(new(a.GetManifestResourceStream(names[RNG.Next(names.Length)])!));
+            return;
+        }
+        S = true;
         await JS.PlayAudio(new(Resources.GetResource("audio.click.mp3")!));
         // ShowingReference = !ShowingReference;
         await JS.Alert("Not implemented yet");

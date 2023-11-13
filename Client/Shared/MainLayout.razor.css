@@ -1,9 +1,9 @@
 .Main {
     background-color: rgb(0, 143, 111);
-    height: 100vh;
+    height: 100dvh;
     --HeaderHeight: 30px;
     --FooterHeight: 30px;
-    --ContentHeight: calc(100vh - var(--HeaderHeight) - var(--FooterHeight));
+    --ContentHeight: calc(100dvh - var(--HeaderHeight) - var(--FooterHeight));
 }
 
 .Header {

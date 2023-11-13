@@ -47,7 +47,7 @@ public class ApiController : ControllerBase {
         var query = HttpUtility.ParseQueryString(uriBuilder.Query);
         query["database"] = "projects/godfield/databases/(default)";
         query["VER"] = "8";
-        // query["RID"] = int REQUEST_ID;
+        query["RID"] = "0"; // should be random?
         query["CVER"] = "22";
         query["X-HTTP-Session-Id"] = "gsessionid";
         query["$httpHeaders"] = $"X-Goog-Api-Client:gl-js/ fire/8.10.0\nContent-Type:text/plain\nAuthorization:Bearer {Request.Headers["Authorization"].First()!.Split(' ')[1]}\n";
@@ -98,6 +98,7 @@ public class ApiController : ControllerBase {
         using var request = new HttpRequestMessage(HttpMethod.Get, uri);
         using var response = await Http.SendAsync(request);
         var s = await response.Content.ReadAsStringAsync();
+        Console.WriteLine(s);
         var json = JsonSerializer.Deserialize<JsonElement>(s[s.IndexOf("[[1,[{")..(s.IndexOf("}\n]]]") + "}\n]]]".Length)])![1][1][0].GetProperty("documentChange").GetProperty("document").GetProperty("fields");
         return new() {
             Training = json.GetProperty("training").GetProperty("integerValue").GetInt32(),

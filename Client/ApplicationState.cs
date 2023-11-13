@@ -1,3 +1,4 @@
+using GodOfGodField.Shared;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 
@@ -17,8 +18,7 @@ public class ApplicationState {
     public int ExpiresIn { get; set; } = -1;
     public string RefreshToken { get; set; } = string.Empty;
 
-    public string SessionId { get; set; } = string.Empty;
-    public string GSessionId { get; set; } = string.Empty;
+    public GFSession Session { get; set; } = new() { GSessionId = string.Empty, SessionId = string.Empty };
 
     public ApplicationState(IJSRuntime js, NavigationManager navigation) {
         JS = js;

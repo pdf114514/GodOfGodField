@@ -25,7 +25,7 @@ public class ApiClient {
         AppState.IdToken = refresh.IdToken;
         AppState.RefreshToken = refresh.RefreshToken;
         AppState.ExpiresIn = int.Parse(refresh.ExpiresIn);
-        // AppState.LocalId = refreshed.UserId; // Correct?
+        AppState.LocalId = refresh.UserId;
         await AppState.Save();
     }
 
@@ -35,5 +35,9 @@ public class ApiClient {
         return (await (await Http.SendAsync(request)).Content.ReadFromJsonAsync<GFSession>())!;
     }
 
-    public async Task<UserCount> GetUserCount() => (await (await Http.PostAsJsonAsync("/api/getusercount", AppState.Session)).Content.ReadFromJsonAsync<UserCount>())!;
+    public async Task<UserCount> GetUserCount() {
+        var request = new HttpRequestMessage(HttpMethod.Post, "/api/getusercount");
+        request.Headers.Authorization = new("Bearer", AppState.IdToken);
+        return (await (await Http.SendAsync(request)).Content.ReadFromJsonAsync<UserCount>())!;
+    }
 }

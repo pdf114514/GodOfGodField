@@ -1,9 +1,21 @@
 @page "/rooms"
 
 <div class="Rooms">
-    <div class="Room Training">Training: @UserCount.Training</div>
-    <div class="Room Hidden">Hidden: @UserCount.Hidden</div>
-    <div class="Room Duel">Duel: @UserCount.Duel</div>
+    <div class="Room Training">
+        <span>@L["texts.modeNames.training"]</span>
+        <span>@L["texts.menu.userCount"].Replace("{{count}}", UserCount.Training.ToString())</span>
+        <span>@L["texts.modeDescriptions.training"]</span>
+    </div>
+    <div class="Room Hidden">
+        <span>@L["texts.modeNames.hidden"]</span>
+        <span>@L["texts.menu.userCount"].Replace("{{count}}", UserCount.Hidden.ToString())</span>
+        <span>@L["texts.modeDescriptions.hidden"]</span>
+    </div>
+    <div class="Room Duel">
+        <span>@L["texts.modeNames.duel"]</span>
+        <span>@L["texts.menu.userCount"].Replace("{{count}}", UserCount.Duel.ToString())</span>
+        <span>@L["texts.modeDescriptions.duel"]</span>
+    </div>
 </div>
 
 @code {
@@ -11,13 +23,16 @@
 
     protected override async void OnAfterRender(bool firstRender) {
         if (firstRender) {
+            await JS.SetBackgroundImage(await JS.GetElementByClassName("Content"), new(Resources.GetResource("images.screens.menu.png")!));
+            return;
             try {
                 UserCount = await Api.GetUserCount();
             } catch (System.Text.Json.JsonException) {
                 await Api.Refresh();
                 UserCount = await Api.GetUserCount();
             }
-            await JS.Alert(JsonSerializer.Serialize(UserCount));
+            await JS.Alert(System.Text.Json.JsonSerializer.Serialize(UserCount));
+            StateHasChanged();
         }
     }
 }

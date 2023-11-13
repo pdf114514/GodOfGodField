@@ -3,7 +3,7 @@
 <div class="Main">
     <div class="Header">
         <!-- TODO make wrapper div to make button's background ligher when hover -->
-        <div class="ButtonCloseReference" @onclick="CloseReference" style="display: @(ShowingReference ? "inherit" : "none")">
+        <div class="ButtonClose" @onclick="Close" style="display: @(ShowingReference || !AppState.IsLoginScreen ? "inherit" : "none")">
             <div /><div />
         </div>
         <span></span>
@@ -40,8 +40,9 @@
         await JS.Alert("Not implemented yet");
     }
 
-    async Task CloseReference() {
+    async Task Close() {
         await JS.PlayAudio(new(Resources.GetResource("audio.click.mp3")!));
-        ShowingReference = false;
+        if (ShowingReference) ShowingReference = false;
+        else await JS.InvokeVoidAsync("history.back");
     }
 }

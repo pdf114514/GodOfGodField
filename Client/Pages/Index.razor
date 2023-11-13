@@ -52,7 +52,6 @@
 
         // await JS.Alert(System.Text.Json.JsonSerializer.Serialize(accountInfo));
 
-        AppState.Session = await Api.GetSession();
         Navigation.NavigateTo("/rooms");
     }
 }

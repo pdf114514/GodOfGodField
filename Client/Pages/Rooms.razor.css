@@ -1,9 +1,88 @@
 .Rooms {}
 
-.Room {}
+.Room {
+    outline: 0px;
+    overflow: hidden;
+    border-radius: 40px;
+    background-color: rgb(238, 238, 255);
+    width: min(480px, 90dvw);
+    height: min(190px, 90dvh);
+    margin: 20px 0px;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 0 0 0 4px rgb(0, 143, 111);
+}
 
-.Training {}
+.Room > span:first-child {
+    display: block;
+    margin-top: 10px;
+    height: 80px;
+    line-height: 80px;
+    outline: 0px;
+    font-family: sans-serif;
+    font-size: 70px;
+    font-weight: bold;
+    user-select: none;
+}
 
-.Hidden {}
+.Room > span:nth-child(2) {
+    display: block;
+    height: 50px;
+    text-align: right;
+    background-color: rgb(0, 143, 111);
+    outline: 0px;
+    font-family: sans-serif;
+    font-size: 30px;
+    user-select: none;
+    line-height: 50px;
+    margin: 0px 5px;
+    padding: 0px 15px;
+}
 
-.Duel {}
+.Room > span:last-child {
+    display: block;
+    height: 30px;
+    line-height: 30px;
+    user-select: none;
+    font-family: sans-serif;
+    font-size: 22px;
+    outline: 0px;
+    margin-top: 10px;
+}
+
+.Training {
+    background-color: rgb(238, 238, 255);
+    box-shadow: 0 0 0 4px rgb(0, 111, 143);
+    color: rgb(0, 111, 143);
+}
+
+.Training > span:nth-child(2) {
+    background-color: rgb(0, 111, 143);
+    color: rgb(238, 238, 255);
+}
+
+.Hidden {
+    background-color: rgb(0, 143, 111);
+    box-shadow:
+        0 0 0 4px rgb(0, 143, 111),
+        inset 0 0 0 2px rgb(238, 255, 238);
+    color: rgb(238, 255, 238);
+}
+
+.Hidden > span:nth-child(2) {
+    background-color: rgb(238, 255, 238);
+    color: rgb(0, 143, 111);
+}
+
+.Duel {
+    background-color: rgb(255, 238, 238);
+    box-shadow: 0 0 0 4px rgb(221, 102, 153);
+    color: rgb(221, 102, 153);
+}
+
+.Duel > span:nth-child(2) {
+    background-color: rgb(221, 102, 153);
+    color: rgb(255, 238, 238);
+}
+
+/* TODO highlight the hovered room */

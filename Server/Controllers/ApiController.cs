@@ -10,6 +10,7 @@ namespace GodOfGodField.Server.Controllers;
 public class ApiController : ControllerBase {
     public static readonly string FirebaseKey = "AIzaSyCBvMvZkHymK04BfEaERtbmELhyL8-mtAg";
     private readonly static HttpClient Http = new();
+    private readonly static Random RNG = new();
 
     [HttpPost("signup")]
     public async Task<SignUpResponse> SignUp() {
@@ -42,15 +43,18 @@ public class ApiController : ControllerBase {
     }
 
     [HttpPost("getsession")]
-    public async Task<GFSession> GetSession() {
+    public async Task<GFSession> GetSession() => await GetSession(Request, 0, 2);
+
+    public async Task<GFSession> GetSession(HttpRequest request, int requestId, int targetId) => await GetSession(request.Headers["Authorization"].First()!.Split(' ')[1], requestId, targetId);
+    public async Task<GFSession> GetSession(string token, int requestId, int targetId) {
         var uriBuilder = new UriBuilder("https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel");
         var query = HttpUtility.ParseQueryString(uriBuilder.Query);
         query["database"] = "projects/godfield/databases/(default)";
         query["VER"] = "8";
-        query["RID"] = "0"; // should be random?
+        query["RID"] = requestId.ToString();
         query["CVER"] = "22";
         query["X-HTTP-Session-Id"] = "gsessionid";
-        query["$httpHeaders"] = $"X-Goog-Api-Client:gl-js/ fire/8.10.0\nContent-Type:text/plain\nAuthorization:Bearer {Request.Headers["Authorization"].First()!.Split(' ')[1]}\n";
+        query["$httpHeaders"] = $"X-Goog-Api-Client:gl-js/ fire/8.10.0\nContent-Type:text/plain\nAuthorization:Bearer {token}\n";
         query["t"] = "1";
         uriBuilder.Query = query.ToString();
         var uri = uriBuilder.ToString();
@@ -58,7 +62,7 @@ public class ApiController : ControllerBase {
             Content = new FormUrlEncodedContent(new Dictionary<string, string> {
                 ["count"] = "1",
                 ["ofs"] = "0",
-                ["req0__data__"] = JsonSerializer.Serialize(new {
+                ["req0___data__"] = JsonSerializer.Serialize(new {
                     database = "projects/godfield/databases/(default)",
                     addTarget = new {
                         documents = new {
@@ -66,7 +70,7 @@ public class ApiController : ControllerBase {
                                 "projects/godfield/databases/(default)/documents/userCount/data"
                             }
                         },
-                        targetId = 2
+                        targetId = targetId
                     }
                 })
             })
@@ -81,7 +85,10 @@ public class ApiController : ControllerBase {
     }
 
     [HttpPost("getusercount")]
-    public async Task<UserCount> GetUserCount([FromBody] GFSession session) {
+    public async Task<UserCount> GetUserCount() {
+        var requestId = RNG.Next(10000, 60001);
+        var targetId = 2;
+        var session = await GetSession(Request, requestId, targetId);
         var uriBuilder = new UriBuilder("https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel");
         var query = HttpUtility.ParseQueryString(uriBuilder.Query);
         query["database"] = "projects/godfield/databases/(default)";
@@ -94,16 +101,41 @@ public class ApiController : ControllerBase {
         query["TYPE"] = "xmlhttp";
         query["t"] = "1";
         uriBuilder.Query = query.ToString();
-        var uri = uriBuilder.ToString();
-        using var request = new HttpRequestMessage(HttpMethod.Get, uri);
-        using var response = await Http.SendAsync(request);
+        using var request = new HttpRequestMessage(HttpMethod.Get, uriBuilder.ToString());
+        var sendingRequest = Http.SendAsync(request);
+        await Unknown1(session, requestId + 1, targetId);
+        var response = await sendingRequest; // THIS TAKES A MINUTE TO RESPOND WHY
         var s = await response.Content.ReadAsStringAsync();
         Console.WriteLine(s);
         var json = JsonSerializer.Deserialize<JsonElement>(s[s.IndexOf("[[1,[{")..(s.IndexOf("}\n]]]") + "}\n]]]".Length)])![1][1][0].GetProperty("documentChange").GetProperty("document").GetProperty("fields");
         return new() {
-            Training = json.GetProperty("training").GetProperty("integerValue").GetInt32(),
-            Hidden = json.GetProperty("hidden").GetProperty("integerValue").GetInt32(),
-            Duel = json.GetProperty("duel").GetProperty("integerValue").GetInt32()
+            Training = int.Parse(json.GetProperty("training").GetProperty("integerValue").GetString()!),
+            Hidden = int.Parse(json.GetProperty("hidden").GetProperty("integerValue").GetString()!),
+            Duel = int.Parse(json.GetProperty("duel").GetProperty("integerValue").GetString()!)
         };
+    }
+
+    // Revoke the session?
+    public async Task Unknown1(GFSession session, int requestId, int targetId) {
+        var uriBuilder = new UriBuilder("https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel");
+        var query = HttpUtility.ParseQueryString(uriBuilder.Query);
+        query["database"] = "projects/godfield/databases/(default)";
+        query["gsessionid"] = session.GSessionId;
+        query["SID"] = session.SessionId;
+        query["RID"] = requestId.ToString();
+        query["AID"] = "4";
+        query["t"] = "1";
+        uriBuilder.Query = query.ToString();
+        using var request = new HttpRequestMessage(HttpMethod.Post, uriBuilder.ToString()) {
+            Content = new FormUrlEncodedContent(new Dictionary<string, string> {
+                ["count"] = "1",
+                ["ofs"] = "1",
+                ["req0___data__"] = JsonSerializer.Serialize(new {
+                    database = "projects/godfield/databases/(default)",
+                    removeTarget = targetId
+                })
+            })
+        };
+        using var response = await Http.SendAsync(request);
     }
 }

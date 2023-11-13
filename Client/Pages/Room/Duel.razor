@@ -1,0 +1,26 @@
+@page "/rooms/duel"
+
+<div class="Duel">
+    <span class="Matchmaking" style="display: @(IsMatchmaking ? "inherit" : "none")">@L["texts.matchmaking.matchmaking"]</span>
+    <div class="ButtonMatchmaking" @onclick="ButtonMatchmaking">@(IsMatchmaking ? L["texts.matchmaking.removeUser"] : L["texts.matchmaking.addUser"])</div>
+    <div class="Record">
+        <span>@L["texts.record.rating"]</span>
+        <span>@Rate</span>
+        <span>@L["texts.record.gameCount"].Replace("{{count}}", GameCount.ToString())</span>
+    </div>
+</div>
+
+@code {
+    int Rate = -1;
+    int GameCount = -1;
+    bool IsMatchmaking = false;
+
+    async Task ButtonMatchmaking() {
+        await JS.PlayAudio(new(Resources.GetResource("audio.click.mp3")!));
+        IsMatchmaking = !IsMatchmaking;
+        if (IsMatchmaking) {
+            await JS.PlayAudio(new(Resources.GetResource("audio.disease.mp3")!));
+            JS.ShowMessage("Not implemented yet");
+        }
+    }
+}

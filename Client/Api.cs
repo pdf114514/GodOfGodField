@@ -9,16 +9,39 @@ public class ApiClient {
     private readonly HttpClient Http;
     private readonly ApplicationState AppState;
 
+    public static readonly string FirebaseKey = "AIzaSyCBvMvZkHymK04BfEaERtbmELhyL8-mtAg";
+
     public ApiClient(HttpClient http, ApplicationState appState) {
         Http = http;
         AppState = appState;
     }
 
-    public async Task<SignUpResponse> SignUp() => (await (await Http.PostAsync("/api/signup", null)).Content.ReadFromJsonAsync<SignUpResponse>())!;
+    public async Task<SignUpResponse> SignUp() {
+        using var request = new HttpRequestMessage(HttpMethod.Post, $"https://www.googleapis.com/identitytoolkit/v3/relyingparty/signupNewUser?key={FirebaseKey}") {
+            Content = new StringContent(JsonSerializer.Serialize(new { returnSecureToken = true }), null, "application/json")
+        };
+        using var response = await Http.SendAsync(request);
+        return JsonSerializer.Deserialize<SignUpResponse>(await response.Content.ReadAsStringAsync())!;
+    }
 
-    public async Task<AccountInfo> GetAccountInfo() => (await (await Http.PostAsJsonAsync<GetAccountInfoRequest>("/api/getaccountinfo", new() { IdToken = AppState.IdToken })).Content.ReadFromJsonAsync<AccountInfo>())!;
+    public async Task<AccountInfo> GetAccountInfo() {
+        using var request = new HttpRequestMessage(HttpMethod.Post, $"https://www.googleapis.com/identitytoolkit/v3/relyingparty/getAccountInfo?key={FirebaseKey}") {
+            Content = new StringContent(JsonSerializer.Serialize(new { idToken = AppState.IdToken }), null, "application/json")
+        };
+        using var response = await Http.SendAsync(request);
+        return JsonSerializer.Deserialize<AccountInfo>(await response.Content.ReadAsStringAsync())!;
+    }
 
-    public async Task<RefreshTokenResponse> RefreshToken() => (await (await Http.PostAsJsonAsync<RefreshTokenRequest>("/api/refreshtoken", new() { RefreshToken = AppState.RefreshToken })).Content.ReadFromJsonAsync<RefreshTokenResponse>())!;
+    public async Task<RefreshTokenResponse> RefreshToken() {
+        using var request = new HttpRequestMessage(HttpMethod.Post, $"https://securetoken.googleapis.com/v1/token?key={FirebaseKey}") {
+            Content = new FormUrlEncodedContent(new Dictionary<string, string> {
+                ["grant_type"] = "refresh_token",
+                ["refresh_token"] = AppState.RefreshToken
+            })
+        };
+        using var response = await Http.SendAsync(request);
+        return JsonSerializer.Deserialize<RefreshTokenResponse>(await response.Content.ReadAsStringAsync())!;
+    }
 
     public async Task Refresh() {
         var refresh = await RefreshToken();
@@ -44,6 +67,18 @@ public class ApiClient {
             Training = int.Parse(json.GetProperty("training").GetProperty("integerValue").GetString()!),
             Hidden = int.Parse(json.GetProperty("hidden").GetProperty("integerValue").GetString()!),
             Duel = int.Parse(json.GetProperty("duel").GetProperty("integerValue").GetString()!)
+        };
+    }
+
+    public async Task<DuelRecord> GetDuelRecord() {
+        using var request = new HttpRequestMessage(HttpMethod.Get, $"https://firestore.googleapis.com/v1/projects/godfield/databases/(default)/documents/records/{AppState.LocalId}");
+        request.Headers.Authorization = new("Bearer", AppState.IdToken);
+        using var response = await Http.SendAsync(request);
+        var json = JsonSerializer.Deserialize<JsonElement>(await response.Content.ReadAsStringAsync());
+        return new() {
+            Rating = int.Parse(json.GetProperty("rating").GetProperty("integerValue").GetString()!),
+            GameCount = int.Parse(json.GetProperty("gameCount").GetProperty("integerValue").GetString()!),
+            EnemyUserIds = json.GetProperty("enemyUserIds").GetProperty("arrayValue").GetProperty("values").EnumerateArray().Select(x => x.GetProperty("stringValue").GetString()!).ToArray()
         };
     }
 }

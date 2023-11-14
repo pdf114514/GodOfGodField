@@ -5,15 +5,27 @@
     <div class="ButtonMatchmaking" @onclick="ButtonMatchmaking">@(IsMatchmaking ? L["texts.matchmaking.removeUser"] : L["texts.matchmaking.addUser"])</div>
     <div class="Record">
         <span>@L["texts.record.rating"]</span>
-        <span>@Rate</span>
-        <span>@L["texts.record.gameCount"].Replace("{{count}}", GameCount.ToString())</span>
+        <span>@(1500 + Record.Rating)</span>
+        <span>@L["texts.record.gameCount"].Replace("{{count}}", Record.GameCount.ToString())</span>
     </div>
 </div>
 
 @code {
-    int Rate = -1;
-    int GameCount = -1;
+    DuelRecord Record = new() { Rating = 0, GameCount = -1, EnemyUserIds = new string[] {} };
     bool IsMatchmaking = false;
+
+    protected override async Task OnInitializedAsync() {
+        try {
+            Record = await Api.GetDuelRecord();
+        } catch {
+            await Api.Refresh();
+            try {
+                Record = await Api.GetDuelRecord();
+            } catch {
+                Record = new() { Rating = 0, GameCount = 0, EnemyUserIds = new string[] {} };
+            }
+        }
+    }
 
     async Task ButtonMatchmaking() {
         await JS.PlayAudio(new(Resources.GetResource("audio.click.mp3")!));

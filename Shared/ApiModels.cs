@@ -56,3 +56,9 @@ public class UserCount {
     [K("hidden")] public required int Hidden { get; init; }
     [K("duel")] public required int Duel { get; init; }
 }
+
+public class DuelRecord {
+    [K("rating")] public required int Rating { get; init; }
+    [K("gameCount")] public required int GameCount { get; init; }
+    [K("enemyUserIds")] public required string[] EnemyUserIds { get; init; }
+}

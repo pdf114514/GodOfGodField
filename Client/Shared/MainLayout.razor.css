@@ -81,7 +81,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    background-size: max(100%, 500px) auto;
+    background-size: cover;
     background-position: top;
     background-repeat: no-repeat;
 }

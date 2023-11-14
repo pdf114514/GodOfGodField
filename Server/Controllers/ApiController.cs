@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using GodOfGodField.Shared;
 using System.Text.Json;
 using System.Web;
+using System.Net.Http.Headers;
 
 namespace GodOfGodField.Server.Controllers;
 
@@ -86,28 +87,10 @@ public class ApiController : ControllerBase {
 
     [HttpPost("getusercount")]
     public async Task<UserCount> GetUserCount() {
-        var requestId = RNG.Next(10000, 60001);
-        var targetId = 2;
-        var session = await GetSession(Request, requestId, targetId);
-        var uriBuilder = new UriBuilder("https://firestore.googleapis.com/google.firestore.v1.Firestore/Listen/channel");
-        var query = HttpUtility.ParseQueryString(uriBuilder.Query);
-        query["database"] = "projects/godfield/databases/(default)";
-        query["gsessionid"] = session.GSessionId;
-        query["VER"] = "8";
-        query["RID"] = "rpc";
-        query["SID"] = session.SessionId;
-        query["CI"] = "0";
-        query["AID"] = "0";
-        query["TYPE"] = "xmlhttp";
-        query["t"] = "1";
-        uriBuilder.Query = query.ToString();
-        using var request = new HttpRequestMessage(HttpMethod.Get, uriBuilder.ToString());
-        var sendingRequest = Http.SendAsync(request);
-        await Unknown1(session, requestId + 1, targetId);
-        var response = await sendingRequest; // THIS TAKES A MINUTE TO RESPOND WHY
-        var s = await response.Content.ReadAsStringAsync();
-        Console.WriteLine(s);
-        var json = JsonSerializer.Deserialize<JsonElement>(s[s.IndexOf("[[1,[{")..(s.IndexOf("}\n]]]") + "}\n]]]".Length)])![1][1][0].GetProperty("documentChange").GetProperty("document").GetProperty("fields");
+        using var request = new HttpRequestMessage(HttpMethod.Get, "https://firestore.googleapis.com/v1/projects/godfield/databases/(default)/documents/userCount/data");
+        request.Headers.Authorization = AuthenticationHeaderValue.Parse(Request.Headers.Authorization.First()!);
+        using var response = await Http.SendAsync(request);
+        var json = JsonSerializer.Deserialize<JsonElement>(await response.Content.ReadAsStringAsync())!.GetProperty("fields");
         return new() {
             Training = int.Parse(json.GetProperty("training").GetProperty("integerValue").GetString()!),
             Hidden = int.Parse(json.GetProperty("hidden").GetProperty("integerValue").GetString()!),

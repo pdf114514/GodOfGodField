@@ -12,14 +12,9 @@
     string UserName = string.Empty;
 
     protected override async Task OnInitializedAsync() {
+        await JS.SetBackgroundImage(await JS.GetElementByClassName("Content"), new(Resources.GetResource("images.screens.home.png")!));
         await AppState.Load();
         UserName = AppState.UserName;
-    }
-
-    protected override async void OnAfterRender(bool firstRender) {
-        if (firstRender) {
-            await JS.SetBackgroundImage(await JS.GetElementByClassName("Content"), new(Resources.GetResource("images.screens.home.png")!));
-        }
     }
 
     async Task Login() {
@@ -45,7 +40,7 @@
         AccountInfo accountInfo;
         try {
             accountInfo = await Api.GetAccountInfo();
-        } catch (System.Text.Json.JsonException) {
+        } catch {
             await Api.Refresh();
             accountInfo = await Api.GetAccountInfo();
         }

@@ -36,8 +36,14 @@ public class ApiClient {
     }
 
     public async Task<UserCount> GetUserCount() {
-        var request = new HttpRequestMessage(HttpMethod.Post, "/api/getusercount");
+        using var request = new HttpRequestMessage(HttpMethod.Get, "https://firestore.googleapis.com/v1/projects/godfield/databases/(default)/documents/userCount/data");
         request.Headers.Authorization = new("Bearer", AppState.IdToken);
-        return (await (await Http.SendAsync(request)).Content.ReadFromJsonAsync<UserCount>())!;
+        using var response = await Http.SendAsync(request);
+        var json = JsonSerializer.Deserialize<JsonElement>(await response.Content.ReadAsStringAsync())!.GetProperty("fields");
+        return new() {
+            Training = int.Parse(json.GetProperty("training").GetProperty("integerValue").GetString()!),
+            Hidden = int.Parse(json.GetProperty("hidden").GetProperty("integerValue").GetString()!),
+            Duel = int.Parse(json.GetProperty("duel").GetProperty("integerValue").GetString()!)
+        };
     }
 }

@@ -75,6 +75,18 @@
     bottom: 0px;
 }
 
+.Footer > span:first-child {
+    outline: 0px;
+    left: 5dvw;
+    position: relative;
+    line-height: 30px;
+    font-family: sans-serif;
+    font-size: 20px;
+    user-select: none;
+    text-align: center;
+    color: rgb(238, 255, 238);
+}
+
 .Content {
     width: 100%;
     height: var(--ContentHeight);

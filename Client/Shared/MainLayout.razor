@@ -14,14 +14,15 @@
         @Body
     </div>
     <div class="Footer">
-        <span></span>
+        <span style="display: @(AppState.IsLoginScreen ? "none" : "inherit")">@AppState.UserName</span>
     </div>
 </div>
 
 @code {
     bool ShowingReference = false;
 
-    protected override void OnInitialized() {
+    protected override async Task OnInitializedAsync() {
+        await AppState.Load();
         Navigation.NavigateTo("/");
     }
 
@@ -43,6 +44,9 @@
     async Task Close() {
         await JS.PlayAudio(new(Resources.GetResource("audio.click.mp3")!));
         if (ShowingReference) ShowingReference = false;
-        else await JS.InvokeVoidAsync("history.back");
+        else if (AppState.IsPlaying) {
+            await JS.Alert("TODO show exiting game confirmation");
+            await JS.InvokeVoidAsync("history.back");
+        } else await JS.InvokeVoidAsync("history.back");
     }
 }

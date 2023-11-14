@@ -62,3 +62,9 @@ public class DuelRecord {
     [K("gameCount")] public required int GameCount { get; init; }
     [K("enemyUserIds")] public required string[] EnemyUserIds { get; init; }
 }
+
+public class AddDuelUserRequest {
+    [K("lang")] public required string Lang { get; init; }
+    [K("mode")] public required string Mode { get; init; }
+    [K("userName")] public required string UserName { get; init; }
+}

@@ -19,7 +19,6 @@
 
     protected override async Task OnInitializedAsync() {
         await JS.SetBackgroundImage(await JS.GetElementByClassName("Content"), new(Resources.GetResource("images.screens.home.png")!));
-        await AppState.Load();
         UserName = AppState.UserName;
     }
 

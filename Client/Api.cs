@@ -1,13 +1,19 @@
 using System.Net.Http.Json;
 using System.Text.Json;
 using GodOfGodField.Shared;
-using Microsoft.JSInterop;
+using Google.Apis.Auth.OAuth2;
+using Google.Cloud.Firestore;
 
 namespace GodOfGodField.Client;
 
 public class ApiClient {
     private readonly HttpClient Http;
     private readonly ApplicationState AppState;
+    // private FirestoreDb? _Firestore;
+    // private async Task<FirestoreDb> GetFirestore() => _Firestore ??= await new FirestoreDbBuilder() {
+    //     ProjectId = "godfield",
+    //     Credential = GoogleCredential.FromAccessToken(AppState.IdToken)
+    // }.BuildAsync();
 
     public static readonly string FirebaseKey = "AIzaSyCBvMvZkHymK04BfEaERtbmELhyL8-mtAg";
 
@@ -59,6 +65,13 @@ public class ApiClient {
     }
 
     public async Task<UserCount> GetUserCount() {
+        // This is not working
+        // var x = await (await GetFirestore()).Collection("userCount").Document("data").GetSnapshotAsync();
+        // return new() {
+        //     Training = int.Parse(x.GetValue<int>("training").ToString()),
+        //     Hidden = int.Parse(x.GetValue<int>("hidden").ToString()),
+        //     Duel = int.Parse(x.GetValue<int>("duel").ToString())
+        // };
         using var request = new HttpRequestMessage(HttpMethod.Get, "https://firestore.googleapis.com/v1/projects/godfield/databases/(default)/documents/userCount/data");
         request.Headers.Authorization = new("Bearer", AppState.IdToken);
         using var response = await Http.SendAsync(request);
@@ -80,5 +93,12 @@ public class ApiClient {
             GameCount = int.Parse(json.GetProperty("gameCount").GetProperty("integerValue").GetString()!),
             EnemyUserIds = json.GetProperty("enemyUserIds").GetProperty("arrayValue").GetProperty("values").EnumerateArray().Select(x => x.GetProperty("stringValue").GetString()!).ToArray()
         };
+    }
+
+    public async Task AddDuelUser(AddDuelUserRequest? data = null) {
+        using var request = new HttpRequestMessage(HttpMethod.Post, "https://asia-northeast1-godfield.cloudfunctions.net/addDuelUser");
+        request.Headers.Authorization = new("Bearer", AppState.IdToken);
+        request.Content = new StringContent(JsonSerializer.Serialize(data ?? new() { Lang = "ja", Mode = "Duel", UserName = AppState.UserName }), null, "application/json");
+        await Http.SendAsync(request);
     }
 }

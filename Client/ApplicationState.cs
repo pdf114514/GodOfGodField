@@ -9,7 +9,7 @@ public class ApplicationState {
     private readonly NavigationManager Navigation;
 
     public bool IsLoginScreen => Navigation.Uri == Navigation.BaseUri;
-    public bool IsPlaying { get; set; } = false;
+    public bool IsPlaying => Navigation.Uri.EndsWith("/game");
 
     public string UserName { get; set; } = string.Empty;
 

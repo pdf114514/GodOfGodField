@@ -1,9 +1,11 @@
 @page "/rooms/hidden"
 
 @code {
+    string RoomId = string.Empty;
+
     protected override async Task OnInitializedAsync() {
-        await JS.PlayAudio(new(Resources.GetResource("audio.alert.mp3")!));
-        JS.ShowMessage("Not implemented yet");
-        await JS.InvokeVoidAsync("history.back");
+        RoomId = await Api.CreateRoom();
+        await Api.AddRoomUser(new() { RoomId = RoomId, UserName = AppState.UserName });
+        await JS.Alert("Room joined!");
     }
 }

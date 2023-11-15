@@ -12,6 +12,7 @@ public class ApplicationState {
     public bool IsPlaying => Navigation.Uri.EndsWith("/game");
 
     public string UserName { get; set; } = string.Empty;
+    public string RoomPassword { get; set; } = string.Empty;
 
     public string IdToken { get; set; } = string.Empty;
     public string LocalId { get; set; } = string.Empty;
@@ -27,6 +28,7 @@ public class ApplicationState {
 
     public async Task Load() {
         UserName = await JS.LSGetItem("UserName") ?? string.Empty;
+        RoomPassword = await JS.LSGetItem("RoomPassword") ?? string.Empty;
         IdToken = await JS.LSGetItem("IdToken") ?? string.Empty;
         LocalId = await JS.LSGetItem("LocalId") ?? string.Empty;
         ExpiresIn = int.Parse(await JS.LSGetItem("ExpiresIn") ?? "-1");
@@ -35,6 +37,7 @@ public class ApplicationState {
 
     public async Task Save() {
         await JS.LSSetItem("UserName", UserName);
+        await JS.LSSetItem("RoomPassword", RoomPassword);
         await JS.LSSetItem("IdToken", IdToken);
         await JS.LSSetItem("LocalId", LocalId);
         await JS.LSSetItem("ExpiresIn", ExpiresIn.ToString());

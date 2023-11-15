@@ -65,6 +65,22 @@ public class DuelRecord {
 
 public class AddDuelUserRequest {
     [K("lang")] public required string Lang { get; init; }
-    [K("mode")] public required string Mode { get; init; }
+    [K("mode")] public string Mode { get; init; } = "duel";
+    [K("userName")] public required string UserName { get; init; }
+}
+
+public class CreateRoomRequest {
+    [K("mode")] public string Mode { get; init; } = "hidden";
+    [K("password")] public required string Password { get; init; }
+    [K("userName")] public required string UserName { get; init; }
+}
+
+public class CreateRoomResponse {
+    [K("roomId")] public required string RoomId { get; init; }
+}
+
+public class AddRoomUserRequest {
+    [K("mode")] public string Mode { get; init; } = "hidden";
+    [K("roomId")] public required string RoomId { get; init; }
     [K("userName")] public required string UserName { get; init; }
 }

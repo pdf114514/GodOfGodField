@@ -18,10 +18,21 @@
     </div>
 </div>
 
+<div class="RoomPassword" style="display: @(IsShowingRoomPassword ? "inherit" : "none")">
+    <div>
+        <span>@L["texts.menu.roomPassword"]</span>
+        <input type="text" @bind="RoomPassword" />
+        <div @onclick="ButtonRoomPassword">@L["texts.menu.setRoomPassword"]</div>
+    </div>
+</div>
+
 @code {
     UserCount UserCount = new() { Duel = -1, Hidden = -1, Training = -1 };
+    bool IsShowingRoomPassword = false;
+    string RoomPassword = string.Empty;
 
     protected override async Task OnInitializedAsync() {
+        RoomPassword = AppState.RoomPassword;
         await JS.SetBackgroundImage(await JS.GetElementByClassName("Content"), new(Resources.GetResource("images.screens.menu.png")!));
         try {
             UserCount = await Api.GetUserCount();
@@ -40,11 +51,19 @@
 
     async Task ButtonHidden() {
         await JS.PlayAudio(new(Resources.GetResource("audio.click.mp3")!));
-        Navigation.NavigateTo("/rooms/hidden");
+        IsShowingRoomPassword = true;
     }
 
     async Task ButtonDuel() {
         await JS.PlayAudio(new(Resources.GetResource("audio.click.mp3")!));
         Navigation.NavigateTo("/rooms/duel");
+    }
+
+    async Task ButtonRoomPassword() {
+        await JS.PlayAudio(new(Resources.GetResource("audio.click.mp3")!));
+        AppState.RoomPassword = RoomPassword;
+        await AppState.Save();
+        if (string.IsNullOrEmpty(AppState.RoomPassword)) return;
+        Navigation.NavigateTo("/rooms/hidden");
     }
 }

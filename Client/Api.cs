@@ -1,8 +1,8 @@
 using System.Net.Http.Json;
 using System.Text.Json;
 using GodOfGodField.Shared;
-using Google.Apis.Auth.OAuth2;
-using Google.Cloud.Firestore;
+// using Google.Apis.Auth.OAuth2;
+// using Google.Cloud.Firestore;
 
 namespace GodOfGodField.Client;
 
@@ -98,7 +98,22 @@ public class ApiClient {
     public async Task AddDuelUser(AddDuelUserRequest? data = null) {
         using var request = new HttpRequestMessage(HttpMethod.Post, "https://asia-northeast1-godfield.cloudfunctions.net/addDuelUser");
         request.Headers.Authorization = new("Bearer", AppState.IdToken);
-        request.Content = new StringContent(JsonSerializer.Serialize(data ?? new() { Lang = "ja", Mode = "Duel", UserName = AppState.UserName }), null, "application/json");
+        request.Content = new StringContent(JsonSerializer.Serialize(data ?? new() { Lang = "ja", Mode = "duel", UserName = AppState.UserName }), null, "application/json");
+        await Http.SendAsync(request);
+    }
+
+    public async Task<string> CreateRoom(CreateRoomRequest? data = null) {
+        using var request = new HttpRequestMessage(HttpMethod.Post, "https://asia-northeast1-godfield.cloudfunctions.net/createRoom");
+        request.Headers.Authorization = new("Bearer", AppState.IdToken);
+        request.Content = new StringContent(JsonSerializer.Serialize(data ?? new() { Mode = "hidden", Password = AppState.RoomPassword, UserName = AppState.UserName }), null, "application/json");
+        using var response = await Http.SendAsync(request);
+        return (await response.Content.ReadFromJsonAsync<CreateRoomResponse>())!.RoomId;
+    }
+
+    public async Task AddRoomUser(AddRoomUserRequest data) {
+        using var request = new HttpRequestMessage(HttpMethod.Post, "https://asia-northeast1-godfield.cloudfunctions.net/addRoomUser");
+        request.Headers.Authorization = new("Bearer", AppState.IdToken);
+        request.Content = new StringContent(JsonSerializer.Serialize(data), null, "application/json");
         await Http.SendAsync(request);
     }
 }

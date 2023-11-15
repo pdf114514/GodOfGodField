@@ -47,6 +47,10 @@
         else if (AppState.IsPlaying) {
             await JS.Alert("TODO show exiting game confirmation");
             await JS.InvokeVoidAsync("history.back");
-        } else await JS.InvokeVoidAsync("history.back");
+        } else if (Navigation.Uri.EndsWith("/rooms/hidden")) {
+            await Api.RemoveRoomUser();
+            await JS.InvokeVoidAsync("history.back");
+        }
+        else await JS.InvokeVoidAsync("history.back");
     }
 }

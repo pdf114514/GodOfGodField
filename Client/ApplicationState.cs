@@ -20,6 +20,7 @@ public class ApplicationState {
     public string RefreshToken { get; set; } = string.Empty;
 
     public GFSession Session { get; set; } = new() { GSessionId = string.Empty, SessionId = string.Empty };
+    public string RoomId { get; set; } = string.Empty;
 
     public ApplicationState(IJSRuntime js, NavigationManager navigation) {
         JS = js;

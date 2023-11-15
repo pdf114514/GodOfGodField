@@ -116,4 +116,11 @@ public class ApiClient {
         request.Content = new StringContent(JsonSerializer.Serialize(data), null, "application/json");
         await Http.SendAsync(request);
     }
+
+    public async Task RemoveRoomUser(RemoveRoomUserRequest? data = null) {
+        using var request = new HttpRequestMessage(HttpMethod.Post, "https://asia-northeast1-godfield.cloudfunctions.net/removeRoomUser");
+        request.Headers.Authorization = new("Bearer", AppState.IdToken);
+        request.Content = new StringContent(JsonSerializer.Serialize(data ?? new() { Mode = "hidden", RoomId = AppState.RoomId }), null, "application/json");
+        await Http.SendAsync(request);
+    }
 }

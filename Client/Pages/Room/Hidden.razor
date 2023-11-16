@@ -1,15 +1,61 @@
 @page "/rooms/hidden"
 
+<div class="Hidden">
+    <div>
+        <div class="LeftSide">
+            <span>@L["texts.entry.solo"]</span>
+            <div @onclick="() => ButtonEntryTeam(0)" />
+        </div>
+        <div class="Entries">
+            <div /><div /><div />
+            <div /><div /><div />
+            <div /><div /><div />
+        </div>
+        <div class="RightSide">
+            <span>@L["texts.entry.teams"]</span>
+            <div @onclick="() => ButtonEntryTeam(1)" />
+            <div @onclick="() => ButtonEntryTeam(2)" />
+            <div @onclick="() => ButtonEntryTeam(3)" />
+            <div @onclick="() => ButtonEntryTeam(4)" />
+        </div>
+    </div>
+    <div>
+        <div>@L["texts.entry.shuffleTeams"]</div>
+        <div>@L["texts.entry.addGame"]</div>
+    </div>
+</div>
+
 @code {
+    // Teams: -1 = No entry
+    //        0 = Individual
+    //        1 = Green
+    //        2 = Red
+    //        3 = Yellow
+    //        4 = Purple
+
     protected override async Task OnInitializedAsync() {
-        AppState.RoomId = await Api.CreateRoom();
-        await Api.AddRoomUser(new() { RoomId = AppState.RoomId, UserName = AppState.UserName });
-        await JS.Alert("Room joined!");
+        await JS.SetBackgroundImage(await JS.GetElementByClassName("Content"), new(Resources.GetResource("images.screens.room.png")!));
         try {
-            await Firestore.ListenChannel("userCount/data").Test();
+            AppState.RoomId = await Api.CreateRoom();
+            await Api.AddRoomUser(new() { RoomId = AppState.RoomId, UserName = AppState.UserName });
+            try {
+                await Firestore.AddTarget($"projects/godfield/databases/(default)/documents/modes/hidden/rooms/{AppState.RoomId}");
+                await Firestore.AddTarget($"projects/godfield/databases/(default)/documents/modes/hidden/comment/{AppState.RoomId}");
+                await (await Firestore.GetChannel()).Test();
+            } catch (Exception e) {
+                Console.WriteLine(e);
+                await JS.CError(e.ToString());
+            }
         } catch (Exception e) {
-            Console.WriteLine(e);
-            await JS.Alert(e.ToString());
+            await JS.CError(e.ToString());
         }
+    }
+
+    int _TeamId = -1;
+    async Task ButtonEntryTeam(int teamId) {
+        await JS.PlayAudio(new(Resources.GetResource("audio.click.mp3")!));
+        if (teamId == _TeamId) await Api.SetEntryUser(-1);
+        else await Api.SetEntryUser(teamId);
+        _TeamId = teamId;
     }
 }

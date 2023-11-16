@@ -89,3 +89,9 @@ public class RemoveRoomUserRequest {
     [K("mode")] public string Mode { get; init; } = "hidden";
     [K("roomId")] public required string RoomId { get; init; }
 }
+
+public class SetEntryUserRequest {
+    [K("mode")] public string Mode { get; init; } = "hidden";
+    [K("roomId")] public required string RoomId { get; init; }
+    [K("team")] public required int Team { get; init; }
+}

@@ -123,4 +123,12 @@ public class ApiClient {
         request.Content = new StringContent(JsonSerializer.Serialize(data ?? new() { Mode = "hidden", RoomId = AppState.RoomId }), null, "application/json");
         await Http.SendAsync(request);
     }
+
+    public Task SetEntryUser(int teamId) => SetEntryUser(new SetEntryUserRequest() { Mode = "hidden", RoomId = AppState.RoomId, Team = teamId });
+    public async Task SetEntryUser(SetEntryUserRequest data) {
+        using var request = new HttpRequestMessage(HttpMethod.Post, "https://asia-northeast1-godfield.cloudfunctions.net/setEntryUser");
+        request.Headers.Authorization = new("Bearer", AppState.IdToken);
+        request.Content = new StringContent(JsonSerializer.Serialize(data), null, "application/json");
+        await Http.SendAsync(request);
+    }
 }

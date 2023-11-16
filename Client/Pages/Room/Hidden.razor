@@ -5,5 +5,11 @@
         AppState.RoomId = await Api.CreateRoom();
         await Api.AddRoomUser(new() { RoomId = AppState.RoomId, UserName = AppState.UserName });
         await JS.Alert("Room joined!");
+        try {
+            await Firestore.ListenChannel("userCount/data").Test();
+        } catch (Exception e) {
+            Console.WriteLine(e);
+            await JS.Alert(e.ToString());
+        }
     }
 }

@@ -24,6 +24,9 @@
     protected override async Task OnInitializedAsync() {
         await AppState.Load();
         Navigation.NavigateTo("/");
+        // var targetId = await Firestore.AddTarget("projects/godfield/databases/(default)/documents/userCount/data");
+        // await Firestore.GetChannel();
+        // await Firestore.RemoveTarget(targetId);
     }
 
     bool S = false;
@@ -49,6 +52,7 @@
             await JS.InvokeVoidAsync("history.back");
         } else if (Navigation.Uri.EndsWith("/rooms/hidden")) {
             await Api.RemoveRoomUser();
+            await Firestore.RemoveAllTargets();
             await JS.InvokeVoidAsync("history.back");
         }
         else await JS.InvokeVoidAsync("history.back");

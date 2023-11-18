@@ -41,7 +41,7 @@
             try {
                 await Firestore.AddTarget($"projects/godfield/databases/(default)/documents/modes/hidden/rooms/{AppState.RoomId}");
                 await Firestore.AddTarget($"projects/godfield/databases/(default)/documents/modes/hidden/comment/{AppState.RoomId}");
-                await (await Firestore.GetChannel()).Test();
+                for (var i = 0; i < 10; i++) await (await Firestore.GetChannel()).Test();
             } catch (Exception e) {
                 Console.WriteLine(e);
                 await JS.CError(e.ToString());

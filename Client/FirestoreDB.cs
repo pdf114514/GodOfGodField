@@ -66,9 +66,9 @@ public class FirestoreDB {
         async void onCloseCallback () {
             Console.WriteLine("Channel closed, Reconecting...");
             Channel = null!;
-            var targets = Targets;
-            foreach(var target in Targets) await RemoveTarget(target.Key);
-            foreach(var target in targets) await AddTarget(target.Value);
+            // var targets = Targets;
+            // foreach(var target in Targets) await RemoveTarget(target.Key);
+            // foreach(var target in targets) await AddTarget(target.Value);
             Channel = await ListenChannel();
             channel.OnClose -= onCloseCallback;
         };

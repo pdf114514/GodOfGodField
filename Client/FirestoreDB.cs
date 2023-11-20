@@ -17,7 +17,7 @@ public class FirestoreDB {
     private int Offset = -1;
     private readonly Dictionary<int, string> Targets = new();
     private GFSession Session = null!;
-    private ListeningChannel Channel = null!;
+    private ListeningChannel Channel = new();
 
     private readonly HttpClient Http;
     private readonly ApiClient Api;
@@ -27,9 +27,19 @@ public class FirestoreDB {
         Http = httpClient;
         Api = api;
         AppState = appState;
+
+        async void onCloseCallback () {
+            Console.WriteLine("Channel closed, Reconecting...");
+            await ListenChannel();
+        };
+        Channel.OnClose += onCloseCallback;
     }
 
-    public async Task<ListeningChannel> GetChannel() => Channel is not null && Channel.IsOpen ? Channel : Channel = await ListenChannel();
+    public async Task<ListeningChannel> GetChannel() {
+        if (Channel.IsOpen) return Channel;
+        await ListenChannel();
+        return Channel;
+    }
 
     private const string ZXCharacters = "abcdefghijklmnopqrstuvwxyz0123456789";
     private string GenerateZX() {
@@ -38,7 +48,7 @@ public class FirestoreDB {
         return sb.ToString();
     }
 
-    private async Task<ListeningChannel> ListenChannel() {
+    private async Task ListenChannel() {
         var uriBuilder = new UriBuilder(ListenChannelUrl);
         var query = HttpUtility.ParseQueryString(uriBuilder.Query);
         query["database"] = $"projects/{ProjectId}/databases/(default)";
@@ -57,23 +67,11 @@ public class FirestoreDB {
         var response = await Http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
         if (response.StatusCode == System.Net.HttpStatusCode.BadRequest && (await response.Content.ReadAsStringAsync()).Contains(InvalidSessionMessage)) {
             Console.WriteLine("Session might be expired");
-            await Api.Refresh();
             await ResumeTargets(Channel.ResumeToken!);
-            return await ListenChannel();
+            await ListenChannel();
         }
-        var channel = new ListeningChannel(response);
         Console.WriteLine($"New channel connected!");
-        async void onCloseCallback () {
-            Console.WriteLine("Channel closed, Reconecting...");
-            Channel = null!;
-            // var targets = Targets;
-            // foreach(var target in Targets) await RemoveTarget(target.Key);
-            // foreach(var target in targets) await AddTarget(target.Value);
-            Channel = await ListenChannel();
-            channel.OnClose -= onCloseCallback;
-        };
-        channel.OnClose += onCloseCallback;
-        return channel;
+        Channel.ReadResponse(response);
     }
 
     private async Task<int> AddTargetWithSession(string documentPath) {
@@ -238,35 +236,43 @@ public class FirestoreDB {
     }
 
     public class ListeningChannel {
-        private HttpResponseMessage Response;
+        private Task? ReadingTask = null;
+        private readonly Dictionary<string, Action<JsonDocument>> DocumentChangeListeners = new();
+        private readonly Dictionary<string, Action> DocumentDeleteListeners = new();
 
-        public bool IsOpen { get; private set; } = true;
+        public bool IsOpen { get; private set; } = false;
         public string? ResumeToken { get; private set; }
 
         public event Action? OnClose;
         public event Action<JsonDocument> OnObjectReceived;
 
-        public ListeningChannel(HttpResponseMessage response) {
-            Response = response;
+        public ListeningChannel() {
             OnObjectReceived += ObjectReceived;
         }
 
-        public async Task Test() {
-            using var stream = await Response.Content.ReadAsStreamAsync();
+        public void ReadResponse(HttpResponseMessage response) {
+            if (ReadingTask is not null && !ReadingTask.IsCompleted) ReadingTask.Wait();
+            ReadingTask = Read(response);
+        }
+
+        private async Task Read(HttpResponseMessage response) {
+            IsOpen = true;
+            using var stream = await response.Content.ReadAsStreamAsync();
             using var reader = new StreamReader(stream);
             var c = 0;
-            var r = "";
+            var sb = new StringBuilder();
             while (await reader.ReadLineAsync() is var line && line is not null) {
                 var s = line.Count(x => x == '[');
                 var l = line.Count(x => x == ']');
                 c += s - l;
-                r += line;
+                sb.Append(line);
                 if (l != 0 && c == 0) {
+                    var r = sb.ToString();
+                    sb.Clear();
                     var x = r[r.IndexOf('[')..(r.LastIndexOf(']') + 1)];
                     Console.WriteLine($"Length: {x.Length}");
                     var obj = JsonSerializer.Deserialize<JsonDocument>(x)!;
                     Console.WriteLine(JsonSerializer.Serialize(obj, new JsonSerializerOptions() { Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping }));
-                    r = "";
                     OnObjectReceived?.Invoke(obj);
                 } else if (c == 0) {
                     Console.WriteLine(line);
@@ -279,13 +285,36 @@ public class FirestoreDB {
         private void ObjectReceived(JsonDocument obj) {
             var l = obj.Deserialize<List<List<JsonElement>>>()!;
             foreach (var o in l) {
-                foreach (var o2 in o[1].EnumerateArray().Where(x => x.GetRawText() != "\"noop\"")) {
-                    if (o2.TryGetProperty("targetChange", out var p) && p.TryGetProperty("resumeToken", out var resumeToken)) {
+                foreach (var o2 in o[1].EnumerateArray()) {
+                    if (o2.GetRawText() == "\"noop\"") continue;
+
+                    if (o2.TryGetProperty("targetChange", out var tc) && tc.TryGetProperty("resumeToken", out var resumeToken)) {
                         ResumeToken = resumeToken.GetString()!;
                         Console.WriteLine($"ResumeToken: {ResumeToken}");
+                    } else if (o2.TryGetProperty("documentChange", out var dc)) {
+                        var document = dc.GetProperty("document");
+                        var documentPath = document.GetProperty("name").GetString()!;
+                        Console.WriteLine($"DocumentChange: {documentPath}");
+                        if (DocumentChangeListeners.ContainsKey(documentPath)) {
+                            DocumentChangeListeners[documentPath](document.GetProperty("fields").Deserialize<JsonDocument>()!);
+                        }
+                    } else if (o2.TryGetProperty("documentDelete", out var dd)) {
+                        var documentPath = dd.GetProperty("document").GetString()!;
+                        Console.WriteLine($"DocumentDelete: {documentPath}");
+                        if (DocumentDeleteListeners.ContainsKey(documentPath)) {
+                            DocumentDeleteListeners[documentPath]();
+                        }
                     }
                 }
             }
         }
+
+        public void AddDocumentChangeListener(string documentPath, Action<JsonDocument> document) => DocumentChangeListeners.Add(documentPath, document);
+        public void RemoveDocumentChangeListener(string documentPath) => DocumentChangeListeners.Remove(documentPath);
+        public void RemoveAllDocumentChangeListeners() => DocumentChangeListeners.Clear();
+
+        public void AddDocumentDeleteListener(string documentPath, Action document) => DocumentDeleteListeners.Add(documentPath, document);
+        public void RemoveDocumentDeleteListener(string documentPath) => DocumentDeleteListeners.Remove(documentPath);
+        public void RemoveAllDocumentDeleteListeners() => DocumentDeleteListeners.Clear();
     }
 }

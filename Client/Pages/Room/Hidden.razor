@@ -1,4 +1,5 @@
 @page "/rooms/hidden"
+@using System.Text.Json
 
 <div class="Hidden">
     <div>
@@ -7,9 +8,13 @@
             <div @onclick="() => ButtonEntryTeam(0)" />
         </div>
         <div class="Entries">
-            <div /><div /><div />
-            <div /><div /><div />
-            <div /><div /><div />
+            @for (var i = 0; i < 9; i++) {
+                @if (Room is not null && Room.Entries.Count > i) {
+                    <div class="@($"Team{Room.Entries[i].Team}")">@Room.Users.First(x => x.Id == Room.Entries[i].Id).Name</div>
+                } else {
+                    <div />
+                }
+            }
         </div>
         <div class="RightSide">
             <span>@L["texts.entry.teams"]</span>
@@ -33,6 +38,8 @@
     //        3 = Yellow
     //        4 = Purple
 
+    HiddenRoom? Room;
+
     protected override async Task OnInitializedAsync() {
         await JS.SetBackgroundImage(await JS.GetElementByClassName("Content"), new(Resources.GetResource("images.screens.room.png")!));
         try {
@@ -41,7 +48,9 @@
             try {
                 await Firestore.AddTarget($"projects/godfield/databases/(default)/documents/modes/hidden/rooms/{AppState.RoomId}");
                 await Firestore.AddTarget($"projects/godfield/databases/(default)/documents/modes/hidden/comments/{AppState.RoomId}");
-                for (var i = 0; i < 10; i++) await (await Firestore.GetChannel()).Test();
+                var channel = await Firestore.GetChannel();
+                channel.AddDocumentChangeListener($"projects/godfield/databases/(default)/documents/modes/hidden/rooms/{AppState.RoomId}", RoomDocumentChange);
+                // channel.AddDocumentDeleteListener($"projects/godfield/databases/(default)/documents/modes/hidden/rooms/{AppState.RoomId}", RoomDocumentDelete);
             } catch (Exception e) {
                 Console.WriteLine(e);
                 await JS.CError(e.ToString());
@@ -51,11 +60,45 @@
         }
     }
 
+    async void RoomDocumentChange(JsonDocument document) {
+        var room = new HiddenRoom(document);
+        if (Room is null) {
+            Room = room;
+            StateHasChanged();
+            return;
+        }
+
+        if (Room.Entries.Count < room.Entries.Count || room.Entries.Any(x => Room.Entries.First(y => y.Id == x.Id).Team != x.Team)) {
+            await JS.PlayAudio(new(Resources.GetResource("audio.add-entry-user.mp3")!));
+        } else if (Room.Entries.Count > room.Entries.Count) {
+            await JS.PlayAudio(new(Resources.GetResource("audio.remove-entry-user.mp3")!));
+        }
+
+        Room = room;
+        StateHasChanged();
+    }
+
+    async void RoomDocumentDelete() {
+        // await Api.RemoveRoomUser(); // needed?
+        await Firestore.RemoveAllTargets();
+        await JS.InvokeVoidAsync("history.back");
+    }
+
     int _TeamId = -1;
     async Task ButtonEntryTeam(int teamId) {
         await JS.PlayAudio(new(Resources.GetResource("audio.click.mp3")!));
-        if (teamId == _TeamId) await Api.SetEntryUser(-1);
-        else await Api.SetEntryUser(teamId);
-        _TeamId = teamId;
+        if (teamId == _TeamId) {
+            await Api.SetEntryUser(-1);
+            _TeamId = -1;
+        } else {
+            await Api.SetEntryUser(teamId);
+            _TeamId = teamId;
+        }
+    }
+
+    public class UserEntry {
+        public required string Id { get; set; }
+        public required string UserName { get; set; }
+        public int TeamId { get; set; } = -1;
     }
 }

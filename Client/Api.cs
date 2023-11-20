@@ -131,4 +131,33 @@ public class ApiClient {
         request.Content = new StringContent(JsonSerializer.Serialize(data), null, "application/json");
         await Http.SendAsync(request);
     }
+
+    public async Task ShuffleTeams(ShuffleTeamsRequest? data = null) {
+        using var request = new HttpRequestMessage(HttpMethod.Post, "https://asia-northeast1-godfield.cloudfunctions.net/shuffleTeams");
+        request.Headers.Authorization = new("Bearer", AppState.IdToken);
+        request.Content = new StringContent(JsonSerializer.Serialize(data ?? new() { Mode = "hidden", RoomId = AppState.RoomId }), null, "application/json");
+        await Http.SendAsync(request);
+    }
+
+    public async Task AddGame(AddGameRequest? data = null) {
+        using var request = new HttpRequestMessage(HttpMethod.Post, "https://asia-northeast1-godfield.cloudfunctions.net/addGame");
+        request.Headers.Authorization = new("Bearer", AppState.IdToken);
+        request.Content = new StringContent(JsonSerializer.Serialize(data ?? new() { Mode = "hidden", RoomId = AppState.RoomId }), null, "application/json");
+        await Http.SendAsync(request);
+    }
+
+    public async Task RemoveGame(RemoveGameRequest? data = null) {
+        using var request = new HttpRequestMessage(HttpMethod.Post, "https://asia-northeast1-godfield.cloudfunctions.net/removeGame");
+        request.Headers.Authorization = new("Bearer", AppState.IdToken);
+        request.Content = new StringContent(JsonSerializer.Serialize(data ?? new() { Mode = "hidden", RoomId = AppState.RoomId }), null, "application/json");
+        await Http.SendAsync(request);
+    }
+
+    public Task UpdateGame(int[] itemIds, string? targetPlayerId = null) => UpdateGame(new UpdateGameRequest() { Mode = "hidden", RoomId = AppState.RoomId, Command = new() { ItemIds = itemIds, TargetPlayerId = targetPlayerId } });
+    public async Task UpdateGame(UpdateGameRequest data) {
+        using var request = new HttpRequestMessage(HttpMethod.Post, "https://asia-northeast1-godfield.cloudfunctions.net/updateGame");
+        request.Headers.Authorization = new("Bearer", AppState.IdToken);
+        request.Content = new StringContent(JsonSerializer.Serialize(data), null, "application/json");
+        await Http.SendAsync(request);
+    }
 }

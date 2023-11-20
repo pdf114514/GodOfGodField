@@ -66,6 +66,7 @@
     text-align: center;
     font-size: 40px;
     font-weight: bold;
+    user-select: none;
 }
 
 .LeftSide > div,

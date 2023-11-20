@@ -9,7 +9,7 @@
         </div>
         <div class="Entries">
             @for (var i = 0; i < 9; i++) {
-                @if (Room is not null && Room.Entries.Count > i) {
+                @if (Room is not null && Room.Entries is not null && Room.Entries.Count > i) {
                     <div class="@($"Team{Room.Entries[i].Team}")">@Room.Users.First(x => x.Id == Room.Entries[i].Id).Name</div>
                 } else {
                     <div />
@@ -24,9 +24,9 @@
             <div @onclick="() => ButtonEntryTeam(4)" />
         </div>
     </div>
-    <div>
-        <div>@L["texts.entry.shuffleTeams"]</div>
-        <div>@L["texts.entry.addGame"]</div>
+    <div style="visibility: @(Room is not null && Room.Users.First().Id == AppState.LocalId ? "inherit" : "hidden")">
+        <div @onclick="ButtonShuffleTeams">@L["texts.entry.shuffleTeams"]</div>
+        <div @onclick="ButtonAddGame">@L["texts.entry.addGame"]</div>
     </div>
 </div>
 
@@ -61,17 +61,27 @@
     }
 
     async void RoomDocumentChange(JsonDocument document) {
+        await JS.InvokeVoidAsync("console.dir", document.RootElement.Deserialize<object>());
         var room = new HiddenRoom(document);
+        if (room.Game is not null) {
+            var channel = await Firestore.GetChannel();
+            channel.RemoveAllDocumentChangeListeners();
+            channel.RemoveAllDocumentDeleteListeners();
+            await Firestore.RemoveAllTargets();
+            Navigation.NavigateTo("/rooms/hidden/game");
+        }
         if (Room is null) {
             Room = room;
             StateHasChanged();
             return;
         }
 
-        if (Room.Entries.Count < room.Entries.Count || room.Entries.Any(x => Room.Entries.First(y => y.Id == x.Id).Team != x.Team)) {
-            await JS.PlayAudio(new(Resources.GetResource("audio.add-entry-user.mp3")!));
-        } else if (Room.Entries.Count > room.Entries.Count) {
-            await JS.PlayAudio(new(Resources.GetResource("audio.remove-entry-user.mp3")!));
+        if (Room.Entries is not null && room.Entries is not null) {
+            if (Room.Entries.Count < room.Entries.Count || room.Entries.Any(x => Room.Entries.First(y => y.Id == x.Id).Team != x.Team)) {
+                await JS.PlayAudio(new(Resources.GetResource("audio.add-entry-user.mp3")!));
+            } else if (Room.Entries.Count > room.Entries.Count) {
+                await JS.PlayAudio(new(Resources.GetResource("audio.remove-entry-user.mp3")!));
+            }
         }
 
         Room = room;
@@ -95,10 +105,14 @@
             _TeamId = teamId;
         }
     }
+    
+    async Task ButtonShuffleTeams() {
+        await JS.PlayAudio(new(Resources.GetResource("audio.click.mp3")!));
+        await Api.ShuffleTeams();
+    }
 
-    public class UserEntry {
-        public required string Id { get; set; }
-        public required string UserName { get; set; }
-        public int TeamId { get; set; } = -1;
+    async Task ButtonAddGame() {
+        await JS.PlayAudio(new(Resources.GetResource("audio.click.mp3")!));
+        await Api.AddGame();
     }
 }

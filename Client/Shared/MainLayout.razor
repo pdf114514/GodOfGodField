@@ -53,6 +53,9 @@
         } else if (Navigation.Uri.EndsWith("/rooms/hidden")) {
             await Api.RemoveRoomUser();
             await Firestore.RemoveAllTargets();
+            var channel = await Firestore.GetChannel();
+            channel.RemoveAllDocumentChangeListeners();
+            channel.RemoveAllDocumentDeleteListeners();
             await JS.InvokeVoidAsync("history.back");
         }
         else await JS.InvokeVoidAsync("history.back");

@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using K = System.Text.Json.Serialization.JsonPropertyNameAttribute;
 
 namespace GodOfGodField.Shared;
@@ -88,10 +89,41 @@ public class AddRoomUserRequest {
 public class RemoveRoomUserRequest {
     [K("mode")] public string Mode { get; init; } = "hidden";
     [K("roomId")] public required string RoomId { get; init; }
+    [K("absent")] [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public bool? Absent { get; init; }
+    [K("userId")] [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public string? UserId { get; init; }
 }
 
 public class SetEntryUserRequest {
     [K("mode")] public string Mode { get; init; } = "hidden";
     [K("roomId")] public required string RoomId { get; init; }
     [K("team")] public required int Team { get; init; }
+}
+
+public class ShuffleTeamsRequest {
+    [K("mode")] public string Mode { get; init; } = "hidden";
+    [K("roomId")] public required string RoomId { get; init; }
+}
+
+public class AddGameRequest {
+    [K("mode")] public string Mode { get; init; } = "hidden";
+    [K("roomId")] public required string RoomId { get; init; }
+}
+
+public class RemoveGameRequest {
+    [K("mode")] public string Mode { get; init; } = "hidden";
+    [K("roomId")] public required string RoomId { get; init; }
+}
+
+public class UpdateGameRequest {
+    [K("mode")] public string Mode { get; init; } = "hidden";
+    [K("roomId")] public required string RoomId { get; init; }
+    [K("command")] public required _Command Command { get; init; }
+
+    public class _Command {
+        [K("itemIds")] public required int[] ItemIds { get; init; }
+        [K("targetPlayerId")] [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public string? TargetPlayerId { get; init; }
+        [K("hp")] [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public int? HP { get; init; }
+        [K("mp")] [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public int? MP { get; init; }
+        [K("cp")] [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public int? CP { get; init; }
+    }
 }

@@ -270,9 +270,9 @@ public class FirestoreDB {
                     var r = sb.ToString();
                     sb.Clear();
                     var x = r[r.IndexOf('[')..(r.LastIndexOf(']') + 1)];
-                    Console.WriteLine($"Length: {x.Length}");
+                    // Console.WriteLine($"Length: {x.Length}");
                     var obj = JsonSerializer.Deserialize<JsonDocument>(x)!;
-                    Console.WriteLine(JsonSerializer.Serialize(obj, new JsonSerializerOptions() { Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping }));
+                    // Console.WriteLine(JsonSerializer.Serialize(obj, new JsonSerializerOptions() { Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping }));
                     OnObjectReceived?.Invoke(obj);
                 } else if (c == 0) {
                     Console.WriteLine(line);
@@ -287,20 +287,30 @@ public class FirestoreDB {
             foreach (var o in l) {
                 foreach (var o2 in o[1].EnumerateArray()) {
                     if (o2.GetRawText() == "\"noop\"") continue;
+                    if (o2.GetRawText() == "\"close\"") {
+                        IsOpen = false;
+                        OnClose?.Invoke();
+                        return;
+                    } else if (o2.TryGetProperty("__sm__", out var sm)) {
+                        foreach (var o3 in sm.GetProperty("status").EnumerateArray()) {
+                            var error = o3.GetProperty("error").GetRawText();
+                            Console.WriteLine($"Error: {error}");
+                        }
+                    }
 
                     if (o2.TryGetProperty("targetChange", out var tc) && tc.TryGetProperty("resumeToken", out var resumeToken)) {
                         ResumeToken = resumeToken.GetString()!;
-                        Console.WriteLine($"ResumeToken: {ResumeToken}");
+                        // Console.WriteLine($"ResumeToken: {ResumeToken}");
                     } else if (o2.TryGetProperty("documentChange", out var dc)) {
                         var document = dc.GetProperty("document");
                         var documentPath = document.GetProperty("name").GetString()!;
-                        Console.WriteLine($"DocumentChange: {documentPath}");
+                        // Console.WriteLine($"DocumentChange: {documentPath}");
                         if (DocumentChangeListeners.ContainsKey(documentPath)) {
                             DocumentChangeListeners[documentPath](document.GetProperty("fields").Deserialize<JsonDocument>()!);
                         }
                     } else if (o2.TryGetProperty("documentDelete", out var dd)) {
                         var documentPath = dd.GetProperty("document").GetString()!;
-                        Console.WriteLine($"DocumentDelete: {documentPath}");
+                        // Console.WriteLine($"DocumentDelete: {documentPath}");
                         if (DocumentDeleteListeners.ContainsKey(documentPath)) {
                             DocumentDeleteListeners[documentPath]();
                         }

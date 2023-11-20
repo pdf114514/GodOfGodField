@@ -1,9 +1,71 @@
 @page "/rooms/hidden/game"
+@using System.Text.Json
+
+<div class="HiddenGame">
+    <div class="UpperSide">
+        <div class="ActionMenu">
+            <span class="Opening">@((MarkupString)L["texts.game.opening"])</span>
+        </div>
+        <div class="PlayerList">
+            <div class="Team0">
+                <span>m2</span>
+                <span>HP <span>00</span></span>
+                <span>MP <span>00</span></span>
+                <span>¥ <span>00</span></span>
+            </div>
+            <div class="Team0">
+                <span>USER2</span>
+                <span>HP <span>00</span></span>
+                <span>MP <span>00</span></span>
+                <span>¥ <span>00</span></span>
+            </div>
+        </div>
+    </div>
+    <div class="LowerSide"></div>
+</div>
 
 @code {
     HiddenRoom? Room;
 
     protected override async Task OnInitializedAsync() {
-        
+        await JS.SetBackgroundImage(await JS.GetElementByClassName("Content"), new(Resources.GetResource("images.screens.room.png")!));
+        return;
+        try {
+            await Firestore.AddTarget($"projects/godfield/databases/(default)/documents/modes/hidden/rooms/{AppState.RoomId}");
+            await Firestore.AddTarget($"projects/godfield/databases/(default)/documents/modes/hidden/comments/{AppState.RoomId}");
+            var channel = await Firestore.GetChannel();
+            channel.AddDocumentChangeListener($"projects/godfield/databases/(default)/documents/modes/hidden/rooms/{AppState.RoomId}", RoomDocumentChange);
+        } catch (Exception e) {
+            Console.WriteLine(e);
+            await JS.CError(e.ToString());
+        }
+        if (AppState.HiddenRoomDocument is not null) {
+            RoomDocumentChange(AppState.HiddenRoomDocument);
+            AppState.HiddenRoomDocument = null;
+        }
+    }
+
+    async void RoomDocumentChange(JsonDocument document) {
+        await JS.InvokeVoidAsync("console.dir", document.RootElement.Deserialize<object>());
+        var room = new HiddenRoom(document);
+        if (Room is null) {
+            Room = room;
+        }
+
+        foreach (var e in Room.Game!.Events) {
+            switch (e.EventName) {
+                case "startGame": {
+                    await JS.PlayAudio(new(Resources.GetResource("audio.start-game.mp3")!));
+                    break;
+                }
+                default: {
+                    Console.WriteLine($"Unknown event: {e.EventName}\n{e.Json.GetRawText()}");
+                    break;
+                }
+            }
+        }
+
+        Room = room;
+        StateHasChanged();
     }
 }

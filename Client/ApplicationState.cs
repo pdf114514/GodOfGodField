@@ -1,3 +1,4 @@
+using System.Text.Json;
 using GodOfGodField.Shared;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
@@ -21,6 +22,8 @@ public class ApplicationState {
 
     public GFSession Session { get; set; } = new() { GSessionId = string.Empty, SessionId = string.Empty };
     public string RoomId { get; set; } = string.Empty;
+
+    public JsonDocument? HiddenRoomDocument { get; set; }
 
     public ApplicationState(IJSRuntime js, NavigationManager navigation) {
         JS = js;

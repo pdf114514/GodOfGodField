@@ -31,6 +31,7 @@ public class HiddenRoom {
 
     public class _Game {
         public int DiseasePlayerId { get; init; }
+        public List<_Event> Events { get; init; }
         public List<int> GiftPlayerIds { get; init; }
         public List<int> GuardianPlayerIds { get; init; }
         public List<_Player> Players { get; init; }
@@ -39,11 +40,22 @@ public class HiddenRoom {
         public int TurnPlayerId { get; init; }
         public int UpdateCount { get; init; }
 
+        public class _Event {
+            public string EventName { get; init; }
+            public JsonElement Json { get; init; }
+
+            public _Event(JsonElement element) {
+                EventName = element.GetProperty("action").GetProperty("stringValue").GetString()!;
+                Json = element;
+            }
+        }
+
         public class _Player {
             public int HP { get; init; }
             public int MP { get; init; }
             public int CP { get; init; }
             public int Id { get; init; }
+            public List<_Event> Events { get; init; }
             public List<_Item> Items { get; init; }
             public string Name { get; init; }
             public string UserId { get; init; }
@@ -63,6 +75,7 @@ public class HiddenRoom {
                 MP = int.Parse(element.GetProperty("mp").GetProperty("integerValue").GetString()!);
                 CP = int.Parse(element.GetProperty("cp").GetProperty("integerValue").GetString()!);
                 Id = int.Parse(element.GetProperty("id").GetProperty("integerValue").GetString()!);
+                Events = element.GetProperty("events").GetProperty("arrayValue").GetProperty("values").EnumerateArray().Select(x => new _Event(x.GetProperty("mapValue").GetProperty("fields"))).ToList();
                 Items = element.GetProperty("items").GetProperty("arrayValue").GetProperty("values").EnumerateArray().Select(x => new _Item(x.GetProperty("mapValue").GetProperty("fields"))).ToList();
                 Name = element.GetProperty("name").GetProperty("stringValue").GetString()!;
                 UserId = element.GetProperty("userId").GetProperty("stringValue").GetString()!;

@@ -1,0 +1,107 @@
+.HiddenGame {
+    display: flex;
+    width: 100dvw;
+    height: calc(100dvh - 60px);
+    flex-direction: column;
+    justify-content: center;
+}
+
+.UpperSide {
+    display: flex;
+    flex-grow: 3;
+    flex-direction: row;
+}
+
+.ActionMenu {
+    display: flex;
+    flex-grow: 3;
+    align-items: center;
+}
+
+.Opening {
+    width: min(640px, 80%);
+    height: min(200px, 80%);
+    margin: 0 20px;
+    padding-top: 30px;
+    display: block;
+    border-radius: 25px;
+    background-color: rgb(0, 143, 111);
+    text-align: center;
+    line-height: 75px;
+    font-size: 48px;
+    font-family: sans-serif;
+    font-weight: bold;
+    color: rgb(238, 255, 238);
+    user-select: none;
+}
+
+.PlayerList {
+    display: flex;
+    flex-grow: 2;
+    flex-direction: column;
+    justify-content: space-evenly;
+}
+
+.PlayerList > div {
+    width: min(340px, 80%);
+    height: min(40px, 80%);
+    background-color: rgb(238, 238, 238);
+    border-top-left-radius: 20px;
+    border-bottom-left-radius: 20px;
+    border: solid 1px rgb(170, 170, 170);
+}
+
+.PlayerList > div::before {
+    content: "";
+    display: block;
+    width: 18px;
+    height: 18px;
+    position: relative;
+    top: 10px;
+    left: 7px;
+}
+
+.PlayerList > div > span:first-child {
+    display: inline-block;
+    position: relative;
+    width: 135px;
+    height: 40px;
+    left: 30px;
+    top: -16px;
+    text-align: center;
+    font-family: sans-serif;
+    font-size: 25px;
+    font-weight: bold;
+    color: rgb(0, 143, 111);
+    line-height: 40px;
+}
+
+.PlayerList > div > span:nth-child(n+2) {
+    display: inline;
+    position: relative;
+    top: -28px;
+    width: 30px;
+    height: 26px;
+    line-height: 26px;
+    font-family: sans-serif;
+    font-size: 14px;
+    font-weight: bold;
+    user-select: none;
+    text-align: right;
+    color: rgb(102, 136, 136);
+}
+
+.PlayerList > div > span:nth-child(n+2) > span {
+    color: rgb(79, 79, 79);
+    font-size: 20px;
+}
+
+.PlayerList > div.Team0::before {
+    background-color: rgb(170, 170, 170);
+    border-radius: 9px;
+}
+
+.LowerSide {
+    width: 100dvw;
+    flex-grow: 2;
+}

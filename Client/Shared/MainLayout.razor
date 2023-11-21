@@ -23,7 +23,9 @@
 
     protected override async Task OnInitializedAsync() {
         await AppState.Load();
+        #if DEBUG
         return;
+        #endif
         Navigation.NavigateTo("/");
         // var targetId = await Firestore.AddTarget("projects/godfield/databases/(default)/documents/userCount/data");
         // await Firestore.GetChannel();

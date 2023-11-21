@@ -51,3 +51,13 @@ function ShowMessage(message) {
     document.body.appendChild(messageElement);
     setTimeout(() => messageElement.remove(), 2000);
 }
+
+function EnqueueEvent(eventName, eventArgs = {}) {
+    const data = {
+        "action": {
+            "stringValue": eventName
+        },
+        ...eventArgs
+    };
+    return DotNet.invokeMethodAsync("GodOfGodField.Client", "EnqueueEvent", JSON.stringify(data));
+}

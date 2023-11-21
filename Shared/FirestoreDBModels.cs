@@ -55,6 +55,7 @@ public class HiddenRoom {
             public int MP { get; init; }
             public int CP { get; init; }
             public int Id { get; init; }
+            public int Team { get; init; }
             public List<_Event> Events { get; init; }
             public List<_Item> Items { get; init; }
             public string Name { get; init; }
@@ -75,6 +76,7 @@ public class HiddenRoom {
                 MP = int.Parse(element.GetProperty("mp").GetProperty("integerValue").GetString()!);
                 CP = int.Parse(element.GetProperty("cp").GetProperty("integerValue").GetString()!);
                 Id = int.Parse(element.GetProperty("id").GetProperty("integerValue").GetString()!);
+                Team = element.TryGetProperty("team", out var team) ? int.Parse(team.GetProperty("integerValue").GetString()!) : 0;
                 Events = element.GetProperty("events").GetProperty("arrayValue").GetProperty("values").EnumerateArray().Select(x => new _Event(x.GetProperty("mapValue").GetProperty("fields"))).ToList();
                 Items = element.GetProperty("items").GetProperty("arrayValue").GetProperty("values").EnumerateArray().Select(x => new _Item(x.GetProperty("mapValue").GetProperty("fields"))).ToList();
                 Name = element.GetProperty("name").GetProperty("stringValue").GetString()!;

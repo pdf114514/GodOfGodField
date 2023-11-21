@@ -16,6 +16,7 @@
     display: flex;
     flex-grow: 3;
     align-items: center;
+    justify-content: center;
 }
 
 .Opening {
@@ -40,6 +41,7 @@
     flex-grow: 2;
     flex-direction: column;
     justify-content: space-evenly;
+    max-width: 500px;
 }
 
 .PlayerList > div {
@@ -61,13 +63,17 @@
     left: 7px;
 }
 
+.PlayerList > div > span {
+    user-select: none;
+}
+
 .PlayerList > div > span:first-child {
     display: inline-block;
     position: relative;
     width: 135px;
     height: 40px;
     left: 30px;
-    top: -16px;
+    top: -18px;
     text-align: center;
     font-family: sans-serif;
     font-size: 25px;
@@ -80,6 +86,7 @@
     display: inline;
     position: relative;
     top: -28px;
+    left: 40px;
     width: 30px;
     height: 26px;
     line-height: 26px;
@@ -99,6 +106,63 @@
 .PlayerList > div.Team0::before {
     background-color: rgb(170, 170, 170);
     border-radius: 9px;
+}
+
+.PlayerList > div.Team1 {
+    background-color: rgb(204, 255, 204);
+    border: solid 1px rgb(136, 187, 136);
+
+}
+
+.PlayerList > div.Team1::before {
+    border-bottom: 18px solid rgb(136, 187, 136);
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+    top: 18px;
+    left: 20px;
+}
+
+.PlayerList > div.Team2 {
+    background-color: rgb(255, 204, 204);
+    border: solid 1px rgb(187, 136, 136);
+}
+
+.PlayerList > div.Team2::before {
+    border-bottom: 18px solid rgb(187, 136, 136);
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    transform: rotate(180deg) translate(50%, 50%);
+    width: 20px;
+    height: 20px;
+    top: 22px;
+    left: 20px;
+}
+
+.PlayerList > div.Team3 {
+    background-color: rgb(255, 255, 204);
+    border: solid 1px rgb(187, 187, 136);
+}
+
+.PlayerList > div.Team3::before {
+    border-bottom: 18px solid rgb(187, 187, 136);
+    transform: rotate(45deg) scale(0.8);
+    top: 12px;
+    left: 12px;
+}
+
+.PlayerList > div.Team4 {
+    background-color: rgb(204, 204, 255);
+    border: solid 1px rgb(136, 136, 187);
+}
+
+.PlayerList > div.Team4::before {
+    border-bottom: 18px solid rgb(136, 136, 187);
+    transform: scale(0.9);
+    top: 10px;
+    left: 14px;
 }
 
 .LowerSide {

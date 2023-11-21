@@ -4,20 +4,22 @@
 <div class="HiddenGame">
     <div class="UpperSide">
         <div class="ActionMenu">
-            <span class="Opening">@((MarkupString)L["texts.game.opening"])</span>
+            @if (IsOpening) {
+                <span class="Opening">@((MarkupString)L["texts.game.opening"])</span>
+            }
         </div>
         <div class="PlayerList">
             <div class="Team0">
                 <span>m2</span>
-                <span>HP <span>00</span></span>
-                <span>MP <span>00</span></span>
-                <span>¥ <span>00</span></span>
+                <span>@L["texts.game.hp"] <span>00</span></span>
+                <span>@L["texts.game.mp"] <span>00</span></span>
+                <span>@L["texts.game.cp"] <span>00</span></span>
             </div>
             <div class="Team0">
                 <span>USER2</span>
-                <span>HP <span>00</span></span>
-                <span>MP <span>00</span></span>
-                <span>¥ <span>00</span></span>
+                <span>@L["texts.game.hp"] <span>00</span></span>
+                <span>@L["texts.game.mp"] <span>00</span></span>
+                <span>@L["texts.game.cp"] <span>00</span></span>
             </div>
         </div>
     </div>
@@ -25,11 +27,21 @@
 </div>
 
 @code {
+    bool IsOpening = false;
+
+    static HiddenGame? _Instance;
+    Task? ProcessingEventTask;
+    Queue<HiddenRoom._Game._Event> EventQueue = new();
+
     HiddenRoom? Room;
+    List<HiddenRoom._Game._Player>? Players => Room?.Game?.Players;
 
     protected override async Task OnInitializedAsync() {
+        _Instance = this;
         await JS.SetBackgroundImage(await JS.GetElementByClassName("Content"), new(Resources.GetResource("images.screens.room.png")!));
+        #if DEBUG
         return;
+        #endif
         try {
             await Firestore.AddTarget($"projects/godfield/databases/(default)/documents/modes/hidden/rooms/{AppState.RoomId}");
             await Firestore.AddTarget($"projects/godfield/databases/(default)/documents/modes/hidden/comments/{AppState.RoomId}");
@@ -52,20 +64,46 @@
             Room = room;
         }
 
-        foreach (var e in Room.Game!.Events) {
-            switch (e.EventName) {
-                case "startGame": {
-                    await JS.PlayAudio(new(Resources.GetResource("audio.start-game.mp3")!));
-                    break;
-                }
-                default: {
-                    Console.WriteLine($"Unknown event: {e.EventName}\n{e.Json.GetRawText()}");
-                    break;
-                }
-            }
-        }
+        foreach (var e in Room.Game!.Events) EventQueue.Enqueue(e);
+        ProcessEvent();
 
         Room = room;
         StateHasChanged();
+    }
+
+    void ProcessEvent() {
+        if (ProcessingEventTask is not null) return;
+        ProcessingEventTask = Task.Run(async () => {
+            while (EventQueue.Count > 0) {
+                var e = EventQueue.Dequeue();
+                switch (e.EventName) {
+                    case "startGame": {
+                        await JS.PlayAudio(new(Resources.GetResource("audio.start-game.mp3")!));
+                        IsOpening = true;
+                        StateHasChanged();
+                        await Task.Delay(1500);
+                        break;
+                    }
+                    case "gift": {
+                        await JS.PlayAudio(new(Resources.GetResource("audio.gift.mp3")!));
+                        await Task.Delay(250);
+                        break;
+                    }
+                    default: {
+                        Console.WriteLine($"Unknown event: {e.EventName}\n{e.Json.GetRawText()}");
+                        break;
+                    }
+                }
+            }
+            ProcessingEventTask = null;
+        });
+    }
+
+    // for debug
+    [JSInvokable]
+    public static void EnqueueEvent(string eventJson) {
+        if (_Instance is null) return;
+        _Instance.EventQueue.Enqueue(new(JsonSerializer.Deserialize<JsonElement>(eventJson)));
+        _Instance.ProcessEvent();
     }
 }

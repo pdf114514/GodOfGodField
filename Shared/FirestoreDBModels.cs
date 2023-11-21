@@ -56,7 +56,6 @@ public class HiddenRoom {
             public int CP { get; init; }
             public int Id { get; init; }
             public int Team { get; init; }
-            public List<_Event> Events { get; init; }
             public List<_Item> Items { get; init; }
             public string Name { get; init; }
             public string UserId { get; init; }
@@ -77,7 +76,6 @@ public class HiddenRoom {
                 CP = int.Parse(element.GetProperty("cp").GetProperty("integerValue").GetString()!);
                 Id = int.Parse(element.GetProperty("id").GetProperty("integerValue").GetString()!);
                 Team = element.TryGetProperty("team", out var team) ? int.Parse(team.GetProperty("integerValue").GetString()!) : 0;
-                Events = element.GetProperty("events").GetProperty("arrayValue").GetProperty("values").EnumerateArray().Select(x => new _Event(x.GetProperty("mapValue").GetProperty("fields"))).ToList();
                 Items = element.GetProperty("items").GetProperty("arrayValue").GetProperty("values").EnumerateArray().Select(x => new _Item(x.GetProperty("mapValue").GetProperty("fields"))).ToList();
                 Name = element.GetProperty("name").GetProperty("stringValue").GetString()!;
                 UserId = element.GetProperty("userId").GetProperty("stringValue").GetString()!;
@@ -86,6 +84,7 @@ public class HiddenRoom {
 
         public _Game(JsonElement element) {
             DiseasePlayerId = int.Parse(element.GetProperty("diseasePlayerId").GetProperty("integerValue").GetString()!);
+            Events = element.GetProperty("events").GetProperty("arrayValue").GetProperty("values").EnumerateArray().Select(x => new _Event(x.GetProperty("mapValue").GetProperty("fields"))).ToList();
             GiftPlayerIds = element.GetProperty("giftPlayerIds").GetProperty("arrayValue").GetProperty("values").EnumerateArray().Select(x => int.Parse(x.GetProperty("integerValue").GetString()!)).ToList();
             GuardianPlayerIds = element.GetProperty("guardianPlayerIds").GetProperty("arrayValue").GetProperty("values").EnumerateArray().Select(x => int.Parse(x.GetProperty("integerValue").GetString()!)).ToList();
             Players = element.GetProperty("players").GetProperty("arrayValue").GetProperty("values").EnumerateArray().Select(x => new _Player(x.GetProperty("mapValue").GetProperty("fields"))).ToList();

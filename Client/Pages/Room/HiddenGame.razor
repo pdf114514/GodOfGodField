@@ -1,4 +1,5 @@
 @page "/rooms/hidden/game"
+@using System.Collections.Concurrent
 @using System.Text.Json
 
 <div class="HiddenGame">
@@ -9,39 +10,76 @@
             }
         </div>
         <div class="PlayerList">
-            <div class="Team0">
-                <span>m2</span>
-                <span>@L["texts.game.hp"] <span>00</span></span>
-                <span>@L["texts.game.mp"] <span>00</span></span>
-                <span>@L["texts.game.cp"] <span>00</span></span>
-            </div>
-            <div class="Team0">
-                <span>USER2</span>
-                <span>@L["texts.game.hp"] <span>00</span></span>
-                <span>@L["texts.game.mp"] <span>00</span></span>
-                <span>@L["texts.game.cp"] <span>00</span></span>
-            </div>
+            @if (Debug) {
+                <div class="Team0">
+                    <span>m2</span>
+                    <span>@L["texts.game.hp"] <span>00</span></span>
+                    <span>@L["texts.game.mp"] <span>00</span></span>
+                    <span>@L["texts.game.cp"] <span>00</span></span>
+                </div>
+                <div class="Team0">
+                    <span>USER2</span>
+                    <span>@L["texts.game.hp"] <span>00</span></span>
+                    <span>@L["texts.game.mp"] <span>00</span></span>
+                    <span>@L["texts.game.cp"] <span>00</span></span>
+                </div>
+            }
+            @if (Players is not null) @foreach (var player in Players) {
+                <div class="@($"Team{player.Team}")">
+                    <span>@player.Name</span>
+                    <span>@L["texts.game.hp"] <span>@player.HP</span></span>
+                    <span>@L["texts.game.mp"] <span>@player.MP</span></span>
+                    <span>@L["texts.game.cp"] <span>@player.CP</span></span>
+                </div>
+            }
         </div>
     </div>
-    <div class="LowerSide"></div>
+    <div class="LowerSide">
+        <div class="Items">
+            @if (Debug) {
+                <div class="ItemContainer" data-gifted="false">
+                    <img class="Item" id="TestItem1">
+                    <span class="ItemDescription">@L["texts.game.atk"].Replace("{{atk}}", 30.ToString())</span>
+                </div>
+            }
+            @if (LocalPlayer is not null) @foreach (var item in LocalPlayer.Items) {
+                <div class="ItemContainer" data-gifted="@IsItemGifted(item).ToString().ToLower()">
+                    <img class="Item" id="@($"Item{item.Id}")">
+                    <span class="ItemDescription">@L["texts.game.atk"].Replace("{{atk}}", 99.ToString())</span>
+                </div>
+            }
+        </div>
+    </div>
 </div>
 
 @code {
+    const bool Debug =
+    #if DEBUG
+        true;
+    #else
+        false;
+    #endif
+
     bool IsOpening = false;
 
     static HiddenGame? _Instance;
     Task? ProcessingEventTask;
-    Queue<HiddenRoom._Game._Event> EventQueue = new();
+    ConcurrentQueue<HiddenRoom._Game._Event> EventQueue = new();
 
     HiddenRoom? Room;
     List<HiddenRoom._Game._Player>? Players => Room?.Game?.Players;
+    HiddenRoom._Game._Player? LocalPlayer => Players?.FirstOrDefault(x => x.UserId == AppState.LocalId);
+    Dictionary<HiddenRoom._Game._Player._Item, Dictionary<string, bool>> ItemStates = new();
+    bool IsItemGifted(HiddenRoom._Game._Player._Item item) => ItemStates.TryGetValue(item, out var state) && state["gifted"];
 
     protected override async Task OnInitializedAsync() {
         _Instance = this;
+        ProcessEvent();
         await JS.SetBackgroundImage(await JS.GetElementByClassName("Content"), new(Resources.GetResource("images.screens.room.png")!));
-        #if DEBUG
-        return;
-        #endif
+        if (Debug) {
+            await JS.SetImage(await JS.GetElementById("TestItem1"), new(Resources.GetResource("images.items.weapons.god-sword.png")!));
+            return;
+        }
         try {
             await Firestore.AddTarget($"projects/godfield/databases/(default)/documents/modes/hidden/rooms/{AppState.RoomId}");
             await Firestore.AddTarget($"projects/godfield/databases/(default)/documents/modes/hidden/comments/{AppState.RoomId}");
@@ -60,42 +98,61 @@
     async void RoomDocumentChange(JsonDocument document) {
         await JS.InvokeVoidAsync("console.dir", document.RootElement.Deserialize<object>());
         var room = new HiddenRoom(document);
-        if (Room is null) {
-            Room = room;
-        }
+        if (Room is null) Room = room;
 
         foreach (var e in Room.Game!.Events) EventQueue.Enqueue(e);
-        ProcessEvent();
 
         Room = room;
         StateHasChanged();
     }
 
     void ProcessEvent() {
+        if (ProcessingEventTask is not null || !(ProcessingEventTask?.IsCompleted ?? true)) {
+            Console.WriteLine($"TASK ALREADY RUNNING: {ProcessingEventTask}, {ProcessingEventTask?.IsCompleted}");
+            return;
+        }
         if (ProcessingEventTask is not null) return;
         ProcessingEventTask = Task.Run(async () => {
-            while (EventQueue.Count > 0) {
-                var e = EventQueue.Dequeue();
-                switch (e.EventName) {
-                    case "startGame": {
-                        await JS.PlayAudio(new(Resources.GetResource("audio.start-game.mp3")!));
-                        IsOpening = true;
-                        StateHasChanged();
-                        await Task.Delay(1500);
-                        break;
+            Console.WriteLine("TASK STARTED");
+            while (true) {
+                if (EventQueue.TryDequeue(out var e)) {
+                    Console.WriteLine($"Event: {e.EventName}\n{JsonSerializer.Serialize(e.Json.Deserialize<object>())}");
+                    switch (e.EventName) {
+                        case "startGame": {
+                            await Task.Delay(250);
+                            await JS.PlayAudio(new(Resources.GetResource("audio.start-game.mp3")!));
+                            IsOpening = true;
+                            StateHasChanged();
+                            await Task.Delay(1500);
+                            continue;
+                        }
+                        case "gift": {
+                            if (int.Parse(e.Json.GetProperty("playerId").GetProperty("integerValue").GetString()!) != LocalPlayer?.Id) continue;
+                            var eItem = new HiddenRoom._Game._Player._Item(e.Json.GetProperty("item").GetProperty("mapValue").GetProperty("fields"));
+                            var item = LocalPlayer?.Items.FirstOrDefault(x => x.Id == eItem.Id);
+                            if (item is null) {
+                                Console.WriteLine($"Unknown item: {eItem.Id}");
+                                continue;
+                            }
+                            if (!ItemStates.TryGetValue(item, out var state)) ItemStates[item] = state = new();
+                            state["gifted"] = true;
+                            StateHasChanged();
+                            await JS.SetImage(await JS.GetElementById($"Item{item.Id}"), new(Resources.GetResource("images.items.weapons.god-sword.png")!));
+                            await JS.PlayAudio(new(Resources.GetResource("audio.gift.mp3")!));
+                            await Task.Delay(240);
+                            Console.WriteLine($"Gifted item: {eItem.Id}");
+                            continue;
+                        }
+                        default: {
+                            Console.WriteLine($"Unknown event: {e.EventName}");
+                            continue;
+                        }
                     }
-                    case "gift": {
-                        await JS.PlayAudio(new(Resources.GetResource("audio.gift.mp3")!));
-                        await Task.Delay(250);
-                        break;
-                    }
-                    default: {
-                        Console.WriteLine($"Unknown event: {e.EventName}\n{e.Json.GetRawText()}");
-                        break;
-                    }
+                } else {
+                    // any better ways?
+                    await Task.Delay(100);
                 }
             }
-            ProcessingEventTask = null;
         });
     }
 

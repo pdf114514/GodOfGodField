@@ -306,7 +306,11 @@ public class FirestoreDB {
                         var documentPath = document.GetProperty("name").GetString()!;
                         // Console.WriteLine($"DocumentChange: {documentPath}");
                         if (DocumentChangeListeners.ContainsKey(documentPath)) {
-                            DocumentChangeListeners[documentPath](document.GetProperty("fields").Deserialize<JsonDocument>()!);
+                            try {
+                                DocumentChangeListeners[documentPath](document.GetProperty("fields").Deserialize<JsonDocument>()!);
+                            } catch (Exception e) {
+                                Console.WriteLine(e);
+                            }
                         }
                     } else if (o2.TryGetProperty("documentDelete", out var dd)) {
                         var documentPath = dd.GetProperty("document").GetString()!;

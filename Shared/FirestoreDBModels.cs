@@ -68,25 +68,30 @@ public class HiddenRoom {
                     Id = int.Parse(element.GetProperty("id").GetProperty("integerValue").GetString()!);
                     ModelId = int.Parse(element.GetProperty("modelId").GetProperty("integerValue").GetString()!);
                 }
+
+                public _Item() {
+                    Id = 0;
+                    ModelId = 0;
+                }
             }
 
             public _Player(JsonElement element) {
-                HP = int.Parse(element.GetProperty("hp").GetProperty("integerValue").GetString()!);
-                MP = int.Parse(element.GetProperty("mp").GetProperty("integerValue").GetString()!);
-                CP = int.Parse(element.GetProperty("cp").GetProperty("integerValue").GetString()!);
+                HP = element.TryGetProperty("hp", out var hp) ? int.Parse(hp.GetProperty("integerValue").GetString()!) : 0;
+                MP = element.TryGetProperty("mp", out var mp) ? int.Parse(mp.GetProperty("integerValue").GetString()!) : 0;
+                CP = element.TryGetProperty("cp", out var cp) ? int.Parse(cp.GetProperty("integerValue").GetString()!) : 0;
                 Id = int.Parse(element.GetProperty("id").GetProperty("integerValue").GetString()!);
                 Team = element.TryGetProperty("team", out var team) ? int.Parse(team.GetProperty("integerValue").GetString()!) : 0;
-                Items = element.GetProperty("items").GetProperty("arrayValue").GetProperty("values").EnumerateArray().Select(x => new _Item(x.GetProperty("mapValue").GetProperty("fields"))).ToList();
+                Items = element.GetProperty("items").GetProperty("arrayValue").GetProperty("values").EnumerateArray().Select(x => x.GetProperty("mapValue").TryGetProperty("fields", out var fields) ? new _Item(fields) : new _Item()).ToList();
                 Name = element.GetProperty("name").GetProperty("stringValue").GetString()!;
                 UserId = element.GetProperty("userId").GetProperty("stringValue").GetString()!;
             }
         }
 
         public _Game(JsonElement element) {
-            DiseasePlayerId = int.Parse(element.GetProperty("diseasePlayerId").GetProperty("integerValue").GetString()!);
+            DiseasePlayerId = element.TryGetProperty("diseasePlayerId", out var diseasePlayerId) ? int.Parse(diseasePlayerId.GetProperty("integerValue").GetString()!) : 0;
             Events = element.GetProperty("events").GetProperty("arrayValue").GetProperty("values").EnumerateArray().Select(x => new _Event(x.GetProperty("mapValue").GetProperty("fields"))).ToList();
-            GiftPlayerIds = element.GetProperty("giftPlayerIds").GetProperty("arrayValue").GetProperty("values").EnumerateArray().Select(x => int.Parse(x.GetProperty("integerValue").GetString()!)).ToList();
-            GuardianPlayerIds = element.GetProperty("guardianPlayerIds").GetProperty("arrayValue").GetProperty("values").EnumerateArray().Select(x => int.Parse(x.GetProperty("integerValue").GetString()!)).ToList();
+            GiftPlayerIds = element.TryGetProperty("giftPlayerIds", out var giftPlayerIds) ? giftPlayerIds.GetProperty("arrayValue").GetProperty("values").EnumerateArray().Select(x => int.Parse(x.GetProperty("integerValue").GetString()!)).ToList() : [];
+            GuardianPlayerIds = element.TryGetProperty("guardianPlayerIds", out var guardianPlayerIds) ? guardianPlayerIds.GetProperty("arrayValue").GetProperty("values").EnumerateArray().Select(x => int.Parse(x.GetProperty("integerValue").GetString()!)).ToList() : [];
             Players = element.GetProperty("players").GetProperty("arrayValue").GetProperty("values").EnumerateArray().Select(x => new _Player(x.GetProperty("mapValue").GetProperty("fields"))).ToList();
             TieBreakerTurnCount = int.Parse(element.GetProperty("tiebreakerTurnCount").GetProperty("integerValue").GetString()!);
             TurnCount = int.Parse(element.GetProperty("turnCount").GetProperty("integerValue").GetString()!);

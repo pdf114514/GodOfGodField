@@ -100,7 +100,10 @@
         var room = new HiddenRoom(document);
         if (Room is null) Room = room;
 
-        foreach (var e in Room.Game!.Events) EventQueue.Enqueue(e);
+        foreach (var e in Room.Game!.Events) {
+            Console.WriteLine($"Event added: {e.EventName}");
+            EventQueue.Enqueue(e);
+        }
 
         Room = room;
         StateHasChanged();
@@ -127,8 +130,8 @@
                             continue;
                         }
                         case "gift": {
-                            if (int.Parse(e.Json.GetProperty("playerId").GetProperty("integerValue").GetString()!) != LocalPlayer?.Id) continue;
-                            var eItem = new HiddenRoom._Game._Player._Item(e.Json.GetProperty("item").GetProperty("mapValue").GetProperty("fields"));
+                            if (e.Json.GetProperty("playerId").GetIntValue() != LocalPlayer?.Id) continue;
+                            var eItem = new HiddenRoom._Game._Player._Item(e.Json.GetProperty("item").GetMapFieldsValue());
                             var item = LocalPlayer?.Items.FirstOrDefault(x => x.Id == eItem.Id);
                             if (item is null) {
                                 Console.WriteLine($"Unknown item: {eItem.Id}");
@@ -141,6 +144,14 @@
                             await JS.PlayAudio(new(Resources.GetResource("audio.gift.mp3")!));
                             await Task.Delay(240);
                             Console.WriteLine($"Gifted item: {eItem.Id}");
+                            continue;
+                        }
+                        case "advanceTurn": {
+                            if (IsOpening) {
+                                IsOpening = false;
+                                StateHasChanged();
+                            }
+                            var playerId = e.Json.GetProperty("playerId").GetIntValue();
                             continue;
                         }
                         default: {

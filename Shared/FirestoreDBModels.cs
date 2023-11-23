@@ -14,8 +14,8 @@ public class HiddenRoom {
         public int Team { get; init; }
 
         public _UserEntry(JsonElement element) {
-            Id = element.GetProperty("id").GetProperty("stringValue").GetString()!;
-            Team = element.TryGetProperty("team", out var team) ? int.Parse(team.GetProperty("integerValue").GetString()!) : 0;
+            Id = element.GetProperty("id").GetStringValue();
+            Team = element.TryGetProperty("team", out var team) ? team.GetIntValue() : 0;
         }
     }
 
@@ -24,8 +24,8 @@ public class HiddenRoom {
         public string Name { get; init; }
 
         public _User(JsonElement element) {
-            Id = element.GetProperty("id").GetProperty("stringValue").GetString()!;
-            Name = element.GetProperty("name").GetProperty("stringValue").GetString()!;
+            Id = element.GetProperty("id").GetStringValue();
+            Name = element.GetProperty("name").GetStringValue();
         }
     }
 
@@ -45,7 +45,7 @@ public class HiddenRoom {
             public JsonElement Json { get; init; }
 
             public _Event(JsonElement element) {
-                EventName = element.GetProperty("action").GetProperty("stringValue").GetString()!;
+                EventName = element.GetProperty("action").GetStringValue();
                 Json = element;
             }
         }
@@ -65,8 +65,8 @@ public class HiddenRoom {
                 public int ModelId { get; init; }
 
                 public _Item(JsonElement element) {
-                    Id = int.Parse(element.GetProperty("id").GetProperty("integerValue").GetString()!);
-                    ModelId = int.Parse(element.GetProperty("modelId").GetProperty("integerValue").GetString()!);
+                    Id = element.GetProperty("id").GetIntValue();
+                    ModelId = element.GetProperty("modelId").GetIntValue();
                 }
 
                 public _Item() {
@@ -76,40 +76,39 @@ public class HiddenRoom {
             }
 
             public _Player(JsonElement element) {
-                HP = element.TryGetProperty("hp", out var hp) ? int.Parse(hp.GetProperty("integerValue").GetString()!) : 0;
-                MP = element.TryGetProperty("mp", out var mp) ? int.Parse(mp.GetProperty("integerValue").GetString()!) : 0;
-                CP = element.TryGetProperty("cp", out var cp) ? int.Parse(cp.GetProperty("integerValue").GetString()!) : 0;
-                Id = int.Parse(element.GetProperty("id").GetProperty("integerValue").GetString()!);
-                Team = element.TryGetProperty("team", out var team) ? int.Parse(team.GetProperty("integerValue").GetString()!) : 0;
-                Items = element.GetProperty("items").GetProperty("arrayValue").GetProperty("values").EnumerateArray().Select(x => x.GetProperty("mapValue").TryGetProperty("fields", out var fields) ? new _Item(fields) : new _Item()).ToList();
-                Name = element.GetProperty("name").GetProperty("stringValue").GetString()!;
-                UserId = element.GetProperty("userId").GetProperty("stringValue").GetString()!;
+                HP = element.TryGetProperty("hp", out var hp) ? hp.GetIntValue() : 0;
+                MP = element.TryGetProperty("mp", out var mp) ? mp.GetIntValue() : 0;
+                CP = element.TryGetProperty("cp", out var cp) ? cp.GetIntValue() : 0;
+                Id = element.GetProperty("id").GetIntValue();
+                Team = element.TryGetProperty("team", out var team) ? team.GetIntValue() : 0;
+                Items = element.GetProperty("items").GetArrayEnumerator().Select(x => x.GetMapValue().TryGetFieldsValue(out var fields) ? new _Item(fields) : new _Item()).ToList();
+                Name = element.GetProperty("name").GetStringValue();
+                UserId = element.GetProperty("userId").GetStringValue();
             }
         }
 
         public _Game(JsonElement element) {
-            DiseasePlayerId = element.TryGetProperty("diseasePlayerId", out var diseasePlayerId) ? int.Parse(diseasePlayerId.GetProperty("integerValue").GetString()!) : 0;
-            Events = element.GetProperty("events").GetProperty("arrayValue").GetProperty("values").EnumerateArray().Select(x => new _Event(x.GetProperty("mapValue").GetProperty("fields"))).ToList();
-            GiftPlayerIds = element.TryGetProperty("giftPlayerIds", out var giftPlayerIds) ? giftPlayerIds.GetProperty("arrayValue").GetProperty("values").EnumerateArray().Select(x => int.Parse(x.GetProperty("integerValue").GetString()!)).ToList() : [];
-            GuardianPlayerIds = element.TryGetProperty("guardianPlayerIds", out var guardianPlayerIds) ? guardianPlayerIds.GetProperty("arrayValue").GetProperty("values").EnumerateArray().Select(x => int.Parse(x.GetProperty("integerValue").GetString()!)).ToList() : [];
-            Players = element.GetProperty("players").GetProperty("arrayValue").GetProperty("values").EnumerateArray().Select(x => new _Player(x.GetProperty("mapValue").GetProperty("fields"))).ToList();
-            TieBreakerTurnCount = int.Parse(element.GetProperty("tiebreakerTurnCount").GetProperty("integerValue").GetString()!);
-            TurnCount = int.Parse(element.GetProperty("turnCount").GetProperty("integerValue").GetString()!);
-            TurnPlayerId = int.Parse(element.GetProperty("turnPlayerId").GetProperty("integerValue").GetString()!);
-            UpdateCount = int.Parse(element.GetProperty("updateCount").GetProperty("integerValue").GetString()!);
+            DiseasePlayerId = element.TryGetProperty("diseasePlayerId", out var diseasePlayerId) ? diseasePlayerId.GetIntValue() : 0;
+            Events = element.GetProperty("events").GetArrayEnumerator().Select(x => new _Event(x.GetMapFieldsValue())).ToList();
+            GiftPlayerIds = element.TryGetProperty("giftPlayerIds", out var giftPlayerIds) ? giftPlayerIds.GetArrayEnumerator().Select(x => x.GetIntValue()).ToList() : [];
+            GuardianPlayerIds = element.TryGetProperty("guardianPlayerIds", out var guardianPlayerIds) ? guardianPlayerIds.GetArrayEnumerator().Select(x => x.GetIntValue()).ToList() : [];
+            Players = element.GetProperty("players").GetArrayEnumerator().Select(x => new _Player(x.GetMapFieldsValue())).ToList();
+            TieBreakerTurnCount = element.GetProperty("tiebreakerTurnCount").GetIntValue();
+            TurnCount = element.GetProperty("turnCount").GetIntValue();
+            TurnPlayerId = element.GetProperty("turnPlayerId").GetIntValue();
+            UpdateCount = element.GetProperty("updateCount").GetIntValue();
         }
     }
 
     public HiddenRoom(JsonDocument document) {
-        Password = document.RootElement.GetProperty("password").GetProperty("stringValue").GetString()!;
-        var users = document.RootElement.GetProperty("users");
-        Users = users.GetProperty("arrayValue").GetProperty("values").EnumerateArray().Select(x => new _User(x.GetProperty("mapValue").GetProperty("fields"))).ToList();
+        Password = document.RootElement.GetProperty("password").GetStringValue();
+        Users = document.RootElement.GetProperty("users").GetArrayEnumerator().Select(x => new _User(x.GetMapFieldsValue())).ToList();
         if (document.RootElement.EnumerateObject().Any(x => x.NameEquals("entry"))) {
-            var entry = document.RootElement.GetProperty("entry").GetProperty("mapValue").GetProperty("fields");
-            Entries = entry.TryGetProperty("users", out var entries) ? entries.GetProperty("arrayValue").GetProperty("values").EnumerateArray().Select(x => new _UserEntry(x.GetProperty("mapValue").GetProperty("fields"))).ToList() : [];
-            TieBreakerTurnCount = int.Parse(entry.GetProperty("tiebreakerTurnCount").GetProperty("integerValue").GetString()!);
+            var entry = document.RootElement.GetProperty("entry").GetMapFieldsValue();
+            Entries = entry.TryGetProperty("users", out var entries) ? entries.GetArrayEnumerator().Select(x => new _UserEntry(x.GetMapFieldsValue())).ToList() : [];
+            TieBreakerTurnCount = entry.GetProperty("tiebreakerTurnCount").GetIntValue();
         } else if (document.RootElement.EnumerateObject().Any(x => x.NameEquals("game"))) {
-            Game = new(document.RootElement.GetProperty("game").GetProperty("mapValue").GetProperty("fields"));
+            Game = new(document.RootElement.GetProperty("game").GetMapFieldsValue());
             TieBreakerTurnCount = Game.TieBreakerTurnCount;
         }
     }

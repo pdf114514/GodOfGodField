@@ -37,15 +37,15 @@
     <div class="LowerSide">
         <div class="Items">
             @if (Debug) {
-                <div class="ItemContainer" data-gifted="false">
+                <div class="ItemContainer" data-gifted="false" @onmouseover="() => ShowItemDescription(0)" @onmouseout="HideItemDescription">
                     <img class="Item" id="TestItem1">
-                    <span class="ItemDescription">@L["texts.game.atk"].Replace("{{atk}}", 30.ToString())</span>
+                    <span class="ItemUnderText">@L["texts.game.atk"].Replace("{{atk}}", 30.ToString())</span>
                 </div>
             }
             @if (LocalPlayer is not null) @foreach (var item in LocalPlayer.Items) {
-                <div class="ItemContainer" data-gifted="@IsItemGifted(item).ToString().ToLower()">
+                <div class="ItemContainer" data-gifted="@IsItemGifted(item).ToString().ToLower()" @onmouseover="() => ShowItemDescription(item)" @onmouseout="HideItemDescription">
                     <img class="Item" id="@($"Item{item.Id}")">
-                    <span class="ItemDescription">@L["texts.game.atk"].Replace("{{atk}}", 99.ToString())</span>
+                    <span class="ItemUnderText">@L["texts.game.atk"].Replace("{{atk}}", 99.ToString())</span>
                 </div>
             }
         </div>
@@ -55,7 +55,7 @@
 @code {
     const bool Debug =
     #if DEBUG
-        true;
+        false;
     #else
         false;
     #endif
@@ -100,13 +100,22 @@
         var room = new HiddenRoom(document);
         if (Room is null) Room = room;
 
-        foreach (var e in Room.Game!.Events) {
+        foreach (var e in room.Game!.Events) {
             Console.WriteLine($"Event added: {e.EventName}");
             EventQueue.Enqueue(e);
         }
 
         Room = room;
         StateHasChanged();
+    }
+
+    void ShowItemDescription(HiddenRoom._Game._Player._Item item) => ShowItemDescription(item.ModelId);
+    async void ShowItemDescription(int modelId) {
+        await JS.InvokeVoidAsync("console.log", "ShowItemDescription");
+    }
+
+    async void HideItemDescription() {
+        await JS.InvokeVoidAsync("console.log", "HideItemDescription");
     }
 
     void ProcessEvent() {

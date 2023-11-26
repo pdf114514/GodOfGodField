@@ -173,7 +173,9 @@
 .Items {
     margin: 0px 10px;
     display: flex;
+    flex-wrap: wrap;
     flex-direction: row;
+    width: 740px;
 }
 
 .ItemContainer {
@@ -182,7 +184,7 @@
     margin: 0px 1px;
 }
 
-.ItemDescription {
+.ItemUnderText {
     display: block;
     width: 80px;
     height: 20px;
@@ -281,4 +283,13 @@
     box-shadow:
         0px 0px 0px 2px rgb(85, 187, 153),
         inset 0px 0px 0px 1px rgb(238, 255, 238);
+}
+
+.ItemDescription {
+    width: 300px;
+    height: 90px;
+    background-color: rgb(85, 187, 153);
+    border-radius: 5px;
+    transition-duration: 500ms;
+    transition-timing-function: ease-out;
 }

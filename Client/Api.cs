@@ -17,6 +17,8 @@ public class ApiClient {
 
     public static readonly string FirebaseKey = "AIzaSyCBvMvZkHymK04BfEaERtbmELhyL8-mtAg";
 
+    public bool AutoRefresh { get; init; } = true;
+
     public ApiClient(HttpClient http, ApplicationState appState) {
         Http = http;
         AppState = appState;
@@ -61,7 +63,12 @@ public class ApiClient {
     public async Task<GFSession> GetSession() {
         var request = new HttpRequestMessage(HttpMethod.Post, "/api/getsession");
         request.Headers.Authorization = new("Bearer", AppState.IdToken);
-        return (await (await Http.SendAsync(request)).Content.ReadFromJsonAsync<GFSession>())!;
+        var response = await Http.SendAsync(request);
+        if (AutoRefresh && !response.IsSuccessStatusCode) {
+            await Refresh();
+            return await GetSession();
+        }
+        return (await response.Content.ReadFromJsonAsync<GFSession>())!;
     }
 
     public async Task<UserCount> GetUserCount() {
@@ -75,11 +82,15 @@ public class ApiClient {
         using var request = new HttpRequestMessage(HttpMethod.Get, "https://firestore.googleapis.com/v1/projects/godfield/databases/(default)/documents/userCount/data");
         request.Headers.Authorization = new("Bearer", AppState.IdToken);
         using var response = await Http.SendAsync(request);
+        if (AutoRefresh && !response.IsSuccessStatusCode) {
+            await Refresh();
+            return await GetUserCount();
+        }
         var json = JsonSerializer.Deserialize<JsonElement>(await response.Content.ReadAsStringAsync())!.GetProperty("fields");
         return new() {
-            Training = int.Parse(json.GetProperty("training").GetProperty("integerValue").GetString()!),
-            Hidden = int.Parse(json.GetProperty("hidden").GetProperty("integerValue").GetString()!),
-            Duel = int.Parse(json.GetProperty("duel").GetProperty("integerValue").GetString()!)
+            Training = json.GetProperty("training").GetIntValue(),
+            Hidden = json.GetProperty("hidden").GetIntValue(),
+            Duel = json.GetProperty("duel").GetIntValue()
         };
     }
 
@@ -87,11 +98,15 @@ public class ApiClient {
         using var request = new HttpRequestMessage(HttpMethod.Get, $"https://firestore.googleapis.com/v1/projects/godfield/databases/(default)/documents/records/{AppState.LocalId}");
         request.Headers.Authorization = new("Bearer", AppState.IdToken);
         using var response = await Http.SendAsync(request);
+        if (AutoRefresh && !response.IsSuccessStatusCode) {
+            await Refresh();
+            return await GetDuelRecord();
+        }
         var json = JsonSerializer.Deserialize<JsonElement>(await response.Content.ReadAsStringAsync());
         return new() {
-            Rating = int.Parse(json.GetProperty("rating").GetProperty("integerValue").GetString()!),
-            GameCount = int.Parse(json.GetProperty("gameCount").GetProperty("integerValue").GetString()!),
-            EnemyUserIds = json.GetProperty("enemyUserIds").GetProperty("arrayValue").GetProperty("values").EnumerateArray().Select(x => x.GetProperty("stringValue").GetString()!).ToArray()
+            Rating = json.GetProperty("fields").GetProperty("rating").GetIntValue(),
+            GameCount = json.GetProperty("fields").GetProperty("gameCount").GetIntValue(),
+            EnemyUserIds = json.GetProperty("enemyUserIds").GetArrayEnumerator().Select(x => x.GetStringValue()).ToArray()
         };
     }
 
@@ -99,7 +114,10 @@ public class ApiClient {
         using var request = new HttpRequestMessage(HttpMethod.Post, "https://asia-northeast1-godfield.cloudfunctions.net/addDuelUser");
         request.Headers.Authorization = new("Bearer", AppState.IdToken);
         request.Content = new StringContent(JsonSerializer.Serialize(data ?? new() { Lang = "ja", Mode = "duel", UserName = AppState.UserName }), null, "application/json");
-        await Http.SendAsync(request);
+        if (await Http.SendAsync(request) is var response && AutoRefresh && !response.IsSuccessStatusCode) {
+            await Refresh();
+            await AddDuelUser(data);
+        }
     }
 
     public async Task<string> CreateRoom(CreateRoomRequest? data = null) {
@@ -107,6 +125,10 @@ public class ApiClient {
         request.Headers.Authorization = new("Bearer", AppState.IdToken);
         request.Content = new StringContent(JsonSerializer.Serialize(data ?? new() { Mode = "hidden", Password = AppState.RoomPassword, UserName = AppState.UserName }), null, "application/json");
         using var response = await Http.SendAsync(request);
+        if (AutoRefresh && !response.IsSuccessStatusCode) {
+            await Refresh();
+            return await CreateRoom(data);
+        }
         return (await response.Content.ReadFromJsonAsync<CreateRoomResponse>())!.RoomId;
     }
 
@@ -114,14 +136,21 @@ public class ApiClient {
         using var request = new HttpRequestMessage(HttpMethod.Post, "https://asia-northeast1-godfield.cloudfunctions.net/addRoomUser");
         request.Headers.Authorization = new("Bearer", AppState.IdToken);
         request.Content = new StringContent(JsonSerializer.Serialize(data), null, "application/json");
-        await Http.SendAsync(request);
+        var response = await Http.SendAsync(request);
+        if (AutoRefresh && !response.IsSuccessStatusCode) {
+            await Refresh();
+            await AddRoomUser(data);
+        }
     }
 
     public async Task RemoveRoomUser(RemoveRoomUserRequest? data = null) {
         using var request = new HttpRequestMessage(HttpMethod.Post, "https://asia-northeast1-godfield.cloudfunctions.net/removeRoomUser");
         request.Headers.Authorization = new("Bearer", AppState.IdToken);
         request.Content = new StringContent(JsonSerializer.Serialize(data ?? new() { Mode = "hidden", RoomId = AppState.RoomId }), null, "application/json");
-        await Http.SendAsync(request);
+        if (await Http.SendAsync(request) is var response && AutoRefresh && !response.IsSuccessStatusCode) {
+            await Refresh();
+            await RemoveRoomUser(data);
+        }
     }
 
     public Task SetEntryUser(int teamId) => SetEntryUser(new SetEntryUserRequest() { Mode = "hidden", RoomId = AppState.RoomId, Team = teamId });
@@ -129,28 +158,40 @@ public class ApiClient {
         using var request = new HttpRequestMessage(HttpMethod.Post, "https://asia-northeast1-godfield.cloudfunctions.net/setEntryUser");
         request.Headers.Authorization = new("Bearer", AppState.IdToken);
         request.Content = new StringContent(JsonSerializer.Serialize(data), null, "application/json");
-        await Http.SendAsync(request);
+        if (await Http.SendAsync(request) is var response && AutoRefresh && !response.IsSuccessStatusCode) {
+            await Refresh();
+            await SetEntryUser(data);
+        }
     }
 
     public async Task ShuffleTeams(ShuffleTeamsRequest? data = null) {
         using var request = new HttpRequestMessage(HttpMethod.Post, "https://asia-northeast1-godfield.cloudfunctions.net/shuffleTeams");
         request.Headers.Authorization = new("Bearer", AppState.IdToken);
         request.Content = new StringContent(JsonSerializer.Serialize(data ?? new() { Mode = "hidden", RoomId = AppState.RoomId }), null, "application/json");
-        await Http.SendAsync(request);
+        if (await Http.SendAsync(request) is var response && AutoRefresh && !response.IsSuccessStatusCode) {
+            await Refresh();
+            await ShuffleTeams(data);
+        }
     }
 
     public async Task AddGame(AddGameRequest? data = null) {
         using var request = new HttpRequestMessage(HttpMethod.Post, "https://asia-northeast1-godfield.cloudfunctions.net/addGame");
         request.Headers.Authorization = new("Bearer", AppState.IdToken);
         request.Content = new StringContent(JsonSerializer.Serialize(data ?? new() { Mode = "hidden", RoomId = AppState.RoomId }), null, "application/json");
-        await Http.SendAsync(request);
+        if (await Http.SendAsync(request) is var response && AutoRefresh && !response.IsSuccessStatusCode) {
+            await Refresh();
+            await AddGame(data);
+        }
     }
 
     public async Task RemoveGame(RemoveGameRequest? data = null) {
         using var request = new HttpRequestMessage(HttpMethod.Post, "https://asia-northeast1-godfield.cloudfunctions.net/removeGame");
         request.Headers.Authorization = new("Bearer", AppState.IdToken);
         request.Content = new StringContent(JsonSerializer.Serialize(data ?? new() { Mode = "hidden", RoomId = AppState.RoomId }), null, "application/json");
-        await Http.SendAsync(request);
+        if (await Http.SendAsync(request) is var response && AutoRefresh && !response.IsSuccessStatusCode) {
+            await Refresh();
+            await RemoveGame(data);
+        }
     }
 
     public Task UpdateGame(int[] itemIds, string? targetPlayerId = null) => UpdateGame(new UpdateGameRequest() { Mode = "hidden", RoomId = AppState.RoomId, Command = new() { ItemIds = itemIds, TargetPlayerId = targetPlayerId } });
@@ -158,6 +199,9 @@ public class ApiClient {
         using var request = new HttpRequestMessage(HttpMethod.Post, "https://asia-northeast1-godfield.cloudfunctions.net/updateGame");
         request.Headers.Authorization = new("Bearer", AppState.IdToken);
         request.Content = new StringContent(JsonSerializer.Serialize(data), null, "application/json");
-        await Http.SendAsync(request);
+        if (await Http.SendAsync(request) is var response && AutoRefresh && !response.IsSuccessStatusCode) {
+            await Refresh();
+            await UpdateGame(data);
+        }
     }
 }

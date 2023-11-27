@@ -60,4 +60,17 @@ public static class Resources {
     public static List<string> ResourcePaths => _ResourcePaths ??= GetResourcePaths();
 
     private static List<string> GetResourcePaths() => JsonSerializer.DeserializeAsync<List<string>>(GetResource("json")!).Result!;
+
+    private static List<DataDefinition>? _DataDefinitions = null!;
+    public static List<DataDefinition> DataDefinitions { get; } = _DataDefinitions ??= GetDataDefinitions();
+
+    private static List<DataDefinition> GetDataDefinitions() {
+        var result = new List<DataDefinition>();
+        var i18n = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(GetResource("i18n/ja.json")!)!;
+        var items = i18n["items"];
+        foreach (var item in items.EnumerateArray()) result.Add(DataDefinition.Deserialize(item));
+        return result;
+    }
+
+    public static DataDefinition? GetDataDefinitionByModelId(int modelId) => (modelId - 1 <= 0 && DataDefinitions.Count > modelId) ? DataDefinitions[modelId - 1] : null;
 }

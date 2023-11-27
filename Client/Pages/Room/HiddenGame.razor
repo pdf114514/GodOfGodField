@@ -10,20 +10,6 @@
             }
         </div>
         <div class="PlayerList">
-            @if (Debug) {
-                <div class="Team0">
-                    <span>m2</span>
-                    <span>@L["texts.game.hp"] <span>00</span></span>
-                    <span>@L["texts.game.mp"] <span>00</span></span>
-                    <span>@L["texts.game.cp"] <span>00</span></span>
-                </div>
-                <div class="Team0">
-                    <span>USER2</span>
-                    <span>@L["texts.game.hp"] <span>00</span></span>
-                    <span>@L["texts.game.mp"] <span>00</span></span>
-                    <span>@L["texts.game.cp"] <span>00</span></span>
-                </div>
-            }
             @if (Players is not null) @foreach (var player in Players) {
                 <div class="@($"Team{player.Team}")">
                     <span>@player.Name</span>
@@ -36,16 +22,24 @@
     </div>
     <div class="LowerSide">
         <div class="Items">
-            @if (Debug) {
-                <div class="ItemContainer" data-gifted="false" @onmouseover="() => ShowItemDescription(0)" @onmouseout="HideItemDescription">
-                    <img class="Item" id="TestItem1">
-                    <span class="ItemUnderText">@L["texts.game.atk"].Replace("{{atk}}", 30.ToString())</span>
+            @if (LocalPlayer is not null) @foreach (var item in LocalPlayer.Items) {
+                <div class="ItemContainer" data-gifted="@IsItemGifted(item).ToString().ToLower()" @onmouseover="() => ShowItemDescription(item)"> <!--  @onmouseout="HideItemDescription" -->
+                    <img class="Item" id="@($"Item{item.Id}")">
+                    @if (GetItemDescription(item.ModelId) is var text && !string.IsNullOrEmpty(text)) {
+                        <span class="ItemDescription Element@(GetItemElement(item.ModelId) ?? "")">@text</span>
+                    } else {
+                        <span class="ItemDescription" style="visibility: hidden;" />
+                    }
                 </div>
             }
-            @if (LocalPlayer is not null) @foreach (var item in LocalPlayer.Items) {
-                <div class="ItemContainer" data-gifted="@IsItemGifted(item).ToString().ToLower()" @onmouseover="() => ShowItemDescription(item)" @onmouseout="HideItemDescription">
-                    <img class="Item" id="@($"Item{item.Id}")">
-                    <span class="ItemUnderText">@L["texts.game.atk"].Replace("{{atk}}", 99.ToString())</span>
+        </div>
+        <div class="ItemCardContainer">
+            @if (FocusedItemDataDefinition is not null) {
+                <div class="ItemCard">
+                    <img id="FocusedItemCard" />
+                    <span class="Element@(GetItemElement(FocusedItemDataDefinition) ?? "")">@FocusedItemDataDefinition.Name</span>
+                    <!-- TODO show description text, atk, def, abilityValue or something and price, miracle's cost, ... -->
+                    <span class="Element@(GetItemElement(FocusedItemDataDefinition) ?? "")">TestDescription</span>
                 </div>
             }
         </div>
@@ -69,6 +63,7 @@
     HiddenRoom? Room;
     List<HiddenRoom._Game._Player>? Players => Room?.Game?.Players;
     HiddenRoom._Game._Player? LocalPlayer => Players?.FirstOrDefault(x => x.UserId == AppState.LocalId);
+    DataDefinition? FocusedItemDataDefinition;
     Dictionary<HiddenRoom._Game._Player._Item, Dictionary<string, bool>> ItemStates = new();
     bool IsItemGifted(HiddenRoom._Game._Player._Item item) => ItemStates.TryGetValue(item, out var state) && state["gifted"];
 
@@ -77,7 +72,6 @@
         ProcessEvent();
         await JS.SetBackgroundImage(await JS.GetElementByClassName("Content"), new(Resources.GetResource("images.screens.room.png")!));
         if (Debug) {
-            await JS.SetImage(await JS.GetElementById("TestItem1"), new(Resources.GetResource("images.items.weapons.god-sword.png")!));
             return;
         }
         try {
@@ -86,7 +80,6 @@
             var channel = await Firestore.GetChannel();
             channel.AddDocumentChangeListener($"projects/godfield/databases/(default)/documents/modes/hidden/rooms/{AppState.RoomId}", RoomDocumentChange);
         } catch (Exception e) {
-            Console.WriteLine(e);
             await JS.CError(e.ToString());
         }
         if (AppState.HiddenRoomDocument is not null) {
@@ -96,26 +89,58 @@
     }
 
     async void RoomDocumentChange(JsonDocument document) {
-        await JS.InvokeVoidAsync("console.dir", document.RootElement.Deserialize<object>());
-        var room = new HiddenRoom(document);
-        if (Room is null) Room = room;
+        try {
+            await JS.InvokeVoidAsync("console.dir", document.RootElement.Deserialize<object>());
+            var room = new HiddenRoom(document);
+            if (Room is null) Room = room;
 
-        foreach (var e in room.Game!.Events) {
-            Console.WriteLine($"Event added: {e.EventName}");
-            EventQueue.Enqueue(e);
+            foreach (var e in room.Game!.Events) {
+                EventQueue.Enqueue(e);
+                Console.WriteLine($"Event added: {e.EventName}");
+            }
+
+            Room = room;
+            StateHasChanged();
+        } catch (Exception e) {
+            await JS.CError(e.ToString());
         }
-
-        Room = room;
-        StateHasChanged();
     }
 
-    void ShowItemDescription(HiddenRoom._Game._Player._Item item) => ShowItemDescription(item.ModelId);
+    void ShowItemDescription(HiddenRoom._Game._Player._Item item) {
+        if (!IsItemGifted(item) || !(LocalPlayer?.Items.Contains(item) ?? true)) return;
+        ShowItemDescription(item.ModelId);
+    }
+
     async void ShowItemDescription(int modelId) {
-        await JS.InvokeVoidAsync("console.log", "ShowItemDescription");
+        // Sometimes fails...
+        try {
+            FocusedItemDataDefinition = Resources.GetDataDefinitionByModelId(modelId)!;
+            await JS.SetImage(await JS.GetElementById("FocusedItemCard"), new(FocusedItemDataDefinition.GetImageStream()));
+        } catch (Exception e) {
+            await JS.CError(e.ToString());
+        }
     }
 
-    async void HideItemDescription() {
-        await JS.InvokeVoidAsync("console.log", "HideItemDescription");
+    // void HideItemDescription() => FocusedItemDataDefinition = null;
+
+    string? GetItemDescription(int modelId) {
+        var dataDef = Resources.GetDataDefinitionByModelId(modelId);
+        if (dataDef is null) return null;
+        if (dataDef.IsArmor(out var armor)) return L["texts.game.def"].Replace("{{def}}", armor.Def.ToString());
+        else if (dataDef.IsWeapon(out var weapon)) {
+            var text = L[$"texts.game.{(weapon.IsPlusAtk ? "plusAtk" : "atk")}"].Replace("{{atk}}", weapon.Atk.ToString());
+            if (weapon.HitRate != 0) text = L["texts.game.hitRate"].Replace("{{hitRate}}", weapon.HitRate.ToString()) + text;
+            return text;
+        }
+        return null;
+    }
+
+    string? GetItemElement(int modelId) => GetItemElement(Resources.GetDataDefinitionByModelId(modelId));
+    string? GetItemElement(DataDefinition? dataDef) {
+        if (dataDef is null) return null;
+        if (dataDef.IsArmor(out var armor)) return armor.Element?[0..1].ToUpper() + armor.Element?[1..];
+        else if (dataDef.IsWeapon(out var weapon)) return weapon.Element?[0..1].ToUpper() + weapon.Element?[1..];
+        return null;
     }
 
     void ProcessEvent() {
@@ -127,50 +152,55 @@
         ProcessingEventTask = Task.Run(async () => {
             Console.WriteLine("TASK STARTED");
             while (true) {
-                if (EventQueue.TryDequeue(out var e)) {
-                    Console.WriteLine($"Event: {e.EventName}\n{JsonSerializer.Serialize(e.Json.Deserialize<object>())}");
-                    switch (e.EventName) {
-                        case "startGame": {
-                            await Task.Delay(250);
-                            await JS.PlayAudio(new(Resources.GetResource("audio.start-game.mp3")!));
-                            IsOpening = true;
-                            StateHasChanged();
-                            await Task.Delay(1500);
-                            continue;
-                        }
-                        case "gift": {
-                            if (e.Json.GetProperty("playerId").GetIntValue() != LocalPlayer?.Id) continue;
-                            var eItem = new HiddenRoom._Game._Player._Item(e.Json.GetProperty("item").GetMapFieldsValue());
-                            var item = LocalPlayer?.Items.FirstOrDefault(x => x.Id == eItem.Id);
-                            if (item is null) {
-                                Console.WriteLine($"Unknown item: {eItem.Id}");
+                try {
+                    if (EventQueue.TryDequeue(out var e)) {
+                        Console.WriteLine($"Event: {e.EventName}\n{JsonSerializer.Serialize(e.Json.Deserialize<object>())}");
+                        switch (e.EventName) {
+                            case "startGame": {
+                                await Task.Delay(250);
+                                await JS.PlayAudio(new(Resources.GetResource("audio.start-game.mp3")!));
+                                IsOpening = true;
+                                StateHasChanged();
+                                await Task.Delay(1500);
                                 continue;
                             }
-                            if (!ItemStates.TryGetValue(item, out var state)) ItemStates[item] = state = new();
-                            state["gifted"] = true;
-                            StateHasChanged();
-                            await JS.SetImage(await JS.GetElementById($"Item{item.Id}"), new(Resources.GetResource("images.items.weapons.god-sword.png")!));
-                            await JS.PlayAudio(new(Resources.GetResource("audio.gift.mp3")!));
-                            await Task.Delay(240);
-                            Console.WriteLine($"Gifted item: {eItem.Id}");
-                            continue;
-                        }
-                        case "advanceTurn": {
-                            if (IsOpening) {
-                                IsOpening = false;
+                            case "gift": {
+                                if (e.Json.GetProperty("playerId").GetIntValue() != LocalPlayer?.Id) continue;
+                                var eItem = new HiddenRoom._Game._Player._Item(e.Json.GetProperty("item").GetMapFieldsValue());
+                                var item = LocalPlayer?.Items.FirstOrDefault(x => x.Id == eItem.Id);
+                                if (item is null) {
+                                    Console.WriteLine($"Unknown item: {eItem.Id}");
+                                    continue;
+                                }
+                                if (!ItemStates.TryGetValue(item, out var state)) ItemStates[item] = state = new();
+                                state["gifted"] = true;
                                 StateHasChanged();
+                                var dataDef = Resources.GetDataDefinitionByModelId(item.ModelId)!;
+                                await JS.SetImage(await JS.GetElementById($"Item{item.Id}"), new(dataDef.GetImageStream()));
+                                await JS.PlayAudio(new(Resources.GetResource("audio.gift.mp3")!));
+                                await Task.Delay(240);
+                                // Console.WriteLine($"Gifted item: {eItem.Id}, {dataDef.Name}, {GetTextUnderItem(item.ModelId)}");
+                                continue;
                             }
-                            var playerId = e.Json.GetProperty("playerId").GetIntValue();
-                            continue;
+                            case "advanceTurn": {
+                                if (IsOpening) {
+                                    IsOpening = false;
+                                    StateHasChanged();
+                                }
+                                var playerId = e.Json.GetProperty("playerId").GetIntValue();
+                                continue;
+                            }
+                            default: {
+                                Console.WriteLine($"Unknown event: {e.EventName}");
+                                continue;
+                            }
                         }
-                        default: {
-                            Console.WriteLine($"Unknown event: {e.EventName}");
-                            continue;
-                        }
+                    } else {
+                        // any better ways?
+                        await Task.Delay(100);
                     }
-                } else {
-                    // any better ways?
-                    await Task.Delay(100);
+                } catch (Exception e) {
+                    await JS.CError(e.ToString());
                 }
             }
         });

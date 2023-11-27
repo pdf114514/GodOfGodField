@@ -1,23 +1,17 @@
 using System.Net.Http.Json;
 using System.Text.Json;
 using GodOfGodField.Shared;
-// using Google.Apis.Auth.OAuth2;
-// using Google.Cloud.Firestore;
 
 namespace GodOfGodField.Client;
 
 public class ApiClient {
     private readonly HttpClient Http;
     private readonly ApplicationState AppState;
-    // private FirestoreDb? _Firestore;
-    // private async Task<FirestoreDb> GetFirestore() => _Firestore ??= await new FirestoreDbBuilder() {
-    //     ProjectId = "godfield",
-    //     Credential = GoogleCredential.FromAccessToken(AppState.IdToken)
-    // }.BuildAsync();
 
     public static readonly string FirebaseKey = "AIzaSyCBvMvZkHymK04BfEaERtbmELhyL8-mtAg";
 
     public bool AutoRefresh { get; init; } = true;
+    private DateTime LastRefresh = DateTime.MinValue;
 
     public ApiClient(HttpClient http, ApplicationState appState) {
         Http = http;
@@ -52,12 +46,14 @@ public class ApiClient {
     }
 
     public async Task Refresh() {
+        if (DateTime.Now - LastRefresh < TimeSpan.FromMinutes(5)) throw new("Cannot refresh token more than once in 5 minutes.");
         var refresh = await RefreshToken();
         AppState.IdToken = refresh.IdToken;
         AppState.RefreshToken = refresh.RefreshToken;
         AppState.ExpiresIn = int.Parse(refresh.ExpiresIn);
         AppState.LocalId = refresh.UserId;
         await AppState.Save();
+        LastRefresh = DateTime.Now;
     }
 
     public async Task<GFSession> GetSession() {

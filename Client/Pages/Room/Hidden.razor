@@ -52,7 +52,6 @@
                 channel.AddDocumentChangeListener($"projects/godfield/databases/(default)/documents/modes/hidden/rooms/{AppState.RoomId}", RoomDocumentChange);
                 // channel.AddDocumentDeleteListener($"projects/godfield/databases/(default)/documents/modes/hidden/rooms/{AppState.RoomId}", RoomDocumentDelete);
             } catch (Exception e) {
-                Console.WriteLine(e);
                 await JS.CError(e.ToString());
             }
         } catch (Exception e) {

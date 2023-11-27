@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 
 namespace GodOfGodField.Shared;
@@ -18,7 +19,7 @@ public class DataDefinition {
 
     public Stream GetImageStream() => Resources.GetResource($"images/items/{Category}/{ImageName}.png")!;
 
-    public bool IsT<T>(out T? data) where T : DataDefinition {
+    public bool IsT<T>([NotNullWhen(true)] out T? data) where T : DataDefinition {
         if (this is T t) {
             data = t;
             return true;
@@ -28,26 +29,26 @@ public class DataDefinition {
         }
     }
 
-    public bool IsArmor(out ArmorDataDefinition? data) => IsT(out data);
-    public bool IsDevil(out DevilDataDefitition? data) => IsT(out data);
-    public bool IsGuardian(out GuardianDataDefinition? data) => IsT(out data);
-    public bool IsMiracle(out MiracleDataDefinition? data) => IsT(out data);
-    public bool IsPhenomena(out PhenomenaDataDefinition? data) => IsT(out data);
-    public bool IsSundry(out SundryDataDefinition? data) => IsT(out data);
-    public bool IsTrade(out TradeDataDefinition? data) => IsT(out data);
-    public bool IsWeapon(out WeaponDataDefinition? data) => IsT(out data);
+    public bool IsArmor([NotNullWhen(true)] out ArmorDataDefinition? data) => IsT(out data);
+    public bool IsDevil([NotNullWhen(true)] out DevilDataDefitition? data) => IsT(out data);
+    public bool IsGuardian([NotNullWhen(true)] out GuardianDataDefinition? data) => IsT(out data);
+    public bool IsMiracle([NotNullWhen(true)] out MiracleDataDefinition? data) => IsT(out data);
+    public bool IsPhenomena([NotNullWhen(true)] out PhenomenaDataDefinition? data) => IsT(out data);
+    public bool IsSundry([NotNullWhen(true)] out SundryDataDefinition? data) => IsT(out data);
+    public bool IsTrade([NotNullWhen(true)] out TradeDataDefinition? data) => IsT(out data);
+    public bool IsWeapon([NotNullWhen(true)] out WeaponDataDefinition? data) => IsT(out data);
 
     public static DataDefinition Deserialize(JsonElement json) {
         var category = json.GetProperty("category").GetString();
         return category switch {
             "armor" => new ArmorDataDefinition(json),
-            "devil" => new DevilDataDefitition(json),
-            "guardian" => new GuardianDataDefinition(json),
-            "miracle" => new MiracleDataDefinition(json),
+            "devils" => new DevilDataDefitition(json),
+            "guardians" => new GuardianDataDefinition(json),
+            "miracles" => new MiracleDataDefinition(json),
             "phenomena" => new PhenomenaDataDefinition(json),
-            "sundry" => new SundryDataDefinition(json),
+            "sundries" => new SundryDataDefinition(json),
             "trade" => new TradeDataDefinition(json),
-            "weapon" => new WeaponDataDefinition(json),
+            "weapons" => new WeaponDataDefinition(json),
             _ => throw new($"Unknown category: {category}"),
         };
     }
@@ -144,7 +145,7 @@ public class TradeDataDefinition : DataDefinition {
 public class WeaponDataDefinition : DataDefinition {
     public int Price { get; init; }
     public int GiftRate { get; init; }
-    public int Atk { get; init; }
+    public int Atk { get; init; } = 0; // Magical stick does not have Atk
     public int Def { get; init; } = 0;
     public int HitRate { get; init; } = 0;
     public bool IsPlusAtk { get; init; } = false;
@@ -156,7 +157,7 @@ public class WeaponDataDefinition : DataDefinition {
     public WeaponDataDefinition(JsonElement json) : base(json) {
         Price = json.TryGetProperty("price", out var price) ? price.GetInt32() : 0;
         GiftRate = json.TryGetProperty("giftRate", out var giftRate) ? giftRate.GetInt32() : 0;
-        Atk = json.GetProperty("atk").GetInt32();
+        Atk = json.TryGetProperty("atk", out var atk) ? atk.GetInt32() : 0;
         Def = json.TryGetProperty("def", out var def) ? def.GetInt32() : 0;
         HitRate = json.TryGetProperty("hitRate", out var hitRate) ? hitRate.GetInt32() : 0;
         IsPlusAtk = json.TryGetProperty("isPlusAtk", out var isPlusAtk) ? isPlusAtk.GetBoolean() : false;
@@ -170,7 +171,7 @@ public class WeaponDataDefinition : DataDefinition {
 public class ArmorDataDefinition : DataDefinition {
     public int Price { get; init; }
     public int GiftRate { get; init; }
-    public int Def { get; init; }
+    public int Def { get; init; } = 0; // Armor which has EAbility.CounterAtk does not have Def
     public int Atk { get; init; } = 0;
     public int HitRate { get; init; } = 0;
     public bool IsPlusAtk { get; init; } = false;
@@ -182,7 +183,7 @@ public class ArmorDataDefinition : DataDefinition {
     public ArmorDataDefinition(JsonElement json) : base(json) {
         Price = json.TryGetProperty("price", out var price) ? price.GetInt32() : 0;
         GiftRate = json.TryGetProperty("giftRate", out var giftRate) ? giftRate.GetInt32() : 0;
-        Def = json.GetProperty("def").GetInt32();
+        Def = json.TryGetProperty("def", out var def) ? def.GetInt32() : 0;
         Atk = json.TryGetProperty("atk", out var atk) ? atk.GetInt32() : 0;
         HitRate = json.TryGetProperty("hitRate", out var hitRate) ? hitRate.GetInt32() : 0;
         IsPlusAtk = json.TryGetProperty("isPlusAtk", out var isPlusAtk) ? isPlusAtk.GetBoolean() : false;
@@ -240,32 +241,32 @@ public class MiracleDataDefinition : DataDefinition {
 
 public class DevilDataDefitition : DataDefinition {
     public string Ability { get; init; }
-    public int AbilityValue { get; init; }
+    public int AbilityValue { get; init; } = 0;
     public int AppearanceRate { get; init; }
 
     public DevilDataDefitition(JsonElement json) : base(json) {
         Ability = json.GetProperty("ability").GetString()!;
-        AbilityValue = json.GetProperty("abilityValue").GetInt32();
+        AbilityValue = json.TryGetProperty("abilityValue", out var abilityValue) ? abilityValue.GetInt32() : 0;
         AppearanceRate = json.GetProperty("appearanceRate").GetInt32();
     }
 }
 
 public class GuardianDataDefinition : DataDefinition {
-    public int Atk { get; init; }
     public string Guardian { get; init; }
-    public int GuardianAttackRate { get; init; }
-    public string Element { get; init; }
+    public int GuardianAttackRate { get; init; } = 0; // EGuardian.Earth and EGuardian.Moon do not have GuardianAttackRate WHAT
+    public int Atk { get; init; } = 0;
     public int HitRate { get; init; } = 0;
+    public string? Element { get; init; } = null;
     public string? Ability { get; init; } = null;
     public int AbilityValue { get; init; } = 0;
     public string? Curse { get; init; } = null;
 
     public GuardianDataDefinition(JsonElement json) : base(json) {
-        Atk = json.GetProperty("atk").GetInt32();
         Guardian = json.GetProperty("guardian").GetString()!;
-        GuardianAttackRate = json.GetProperty("guardianAttackRate").GetInt32();
-        Element = json.GetProperty("element").GetString()!;
+        GuardianAttackRate = json.TryGetProperty("guardianAttackRate", out var guardianAttackRate) ? guardianAttackRate.GetInt32() : 0;
+        Atk = json.TryGetProperty("atk", out var atk) ? atk.GetInt32() : 0;
         HitRate = json.TryGetProperty("hitRate", out var hitRate) ? hitRate.GetInt32() : 0;
+        Element = json.TryGetProperty("element", out var element) ? element.GetString() : null;
         Ability = json.TryGetProperty("ability", out var ability) ? ability.GetString() : null;
         AbilityValue = json.TryGetProperty("abilityValue", out var abilityValue) ? abilityValue.GetInt32() : 0;
         Curse = json.TryGetProperty("curse", out var curse) ? curse.GetString() : null;
@@ -273,16 +274,18 @@ public class GuardianDataDefinition : DataDefinition {
 }
 
 public class PhenomenaDataDefinition : DataDefinition {
-    public string Ability { get; init; }
     public int Atk { get; init; } = 0;
     public int HitRate { get; init; } = 0;
+    public string? Element { get; init; } = null;
+    public string? Ability { get; init; } = null;
     public int AbilityValue { get; init; } = 0;
     public string? Curse { get; init; } = null;
 
     public PhenomenaDataDefinition(JsonElement json) : base(json) {
-        Ability = json.GetProperty("ability").GetString()!;
         Atk = json.TryGetProperty("atk", out var atk) ? atk.GetInt32() : 0;
         HitRate = json.TryGetProperty("hitRate", out var hitRate) ? hitRate.GetInt32() : 0;
+        Element = json.TryGetProperty("element", out var element) ? element.GetString() : null;
+        Ability = json.TryGetProperty("ability", out var ability) ? ability.GetString() : null;
         AbilityValue = json.TryGetProperty("abilityValue", out var abilityValue) ? abilityValue.GetInt32() : 0;
         Curse = json.TryGetProperty("curse", out var curse) ? curse.GetString() : null;
     }

@@ -59,7 +59,7 @@ public static class Resources {
     private static List<string> _ResourcePaths = null!;
     public static List<string> ResourcePaths => _ResourcePaths ??= GetResourcePaths();
 
-    private static List<string> GetResourcePaths() => JsonSerializer.DeserializeAsync<List<string>>(GetResource("json")!).Result!;
+    private static List<string> GetResourcePaths() => JsonSerializer.Deserialize<List<string>>(GetResource("json")!)!;
 
     private static List<DataDefinition>? _DataDefinitions = null!;
     public static List<DataDefinition> DataDefinitions { get; } = _DataDefinitions ??= GetDataDefinitions();
@@ -72,5 +72,5 @@ public static class Resources {
         return result;
     }
 
-    public static DataDefinition? GetDataDefinitionByModelId(int modelId) => (modelId - 1 <= 0 && DataDefinitions.Count > modelId) ? DataDefinitions[modelId - 1] : null;
+    public static DataDefinition? GetDataDefinitionByModelId(int modelId) => modelId < 0 || modelId >= DataDefinitions.Count ? null : DataDefinitions[modelId];
 }

@@ -8,6 +8,15 @@
             @if (IsOpening) {
                 <span class="Opening">@((MarkupString)L["texts.game.opening"])</span>
             }
+            @if (Debug) {
+                <div class="ActionMenuLeftSide">
+                    <div class="Team0">USER</div>
+                </div>
+                <div class="Arrow ToRight" />
+                <div class="ActionMenuRightSide">
+                    <div class="Team0">ENEMY</div>
+                </div>
+            }
         </div>
         <div class="PlayerList">
             @if (Players is not null) @foreach (var player in Players) {
@@ -49,12 +58,13 @@
 @code {
     const bool Debug =
     #if DEBUG
-        false;
+        true;
     #else
         false;
     #endif
 
     bool IsOpening = false;
+    bool IsLocalPlayerTurn = true;
 
     static HiddenGame? _Instance;
     Task? ProcessingEventTask;

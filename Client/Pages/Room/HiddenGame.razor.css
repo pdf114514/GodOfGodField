@@ -41,6 +41,81 @@
     flex-grow: 3;
     align-items: center;
     justify-content: center;
+    padding-top: 10px;
+}
+
+.ActionMenuLeftSide,
+.ActionMenuRightSide {
+    display: flex;
+    flex-grow: 4;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+}
+
+.Arrow {
+    flex-grow: 1;
+    align-self: flex-start;
+    text-align: center;
+}
+
+.Arrow::before {
+    visibility: hidden;
+    content: "";
+    display: inline-block;
+    width: 40px;
+    height: 20px;
+    background-color: rgb(255, 102, 153);
+    position: relative;
+    top: -10px;
+}
+
+.Arrow::after {
+    visibility: hidden;
+    content: "";
+    display: inline-block;
+    border-top: 20px solid transparent;
+    border-bottom: 20px solid transparent;
+    border-left: 20px solid rgb(255, 102, 153);
+}
+
+.Arrow.ToRight {
+    transform: rotateY(0deg);
+}
+
+.Arrow.ToRight::before,
+.Arrow.ToRight::after {
+    visibility: visible;
+}
+
+.Arrow.ToLeft {
+    transform: rotateY(180deg);
+}
+
+.Arrow.ToLeft::before,
+.Arrow.ToLeft::after {
+    visibility: visible;
+}
+
+.ActionMenuLeftSide > div:first-child,
+.ActionMenuRightSide > div:first-child {
+    display: block;
+    width: min(260px, 100%);
+    height: 30px;
+    border-radius: 15px;
+    margin: 5px 0px;
+    border: solid 1px rgb(0, 143, 111);
+    color: rgb(0, 143, 111);
+    text-align: center;
+    line-height: 30px;
+    font-size: 20px;
+    font-weight: bold;
+    user-select: none;
+}
+
+.ActionMenu div.Team0 {
+    border: solid 1px rgb(170, 170, 170);
+    background-color: rgb(238, 238, 238);
 }
 
 .Opening {

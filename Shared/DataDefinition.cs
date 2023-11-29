@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using System.Text.Json;
 
 namespace GodOfGodField.Shared;
@@ -47,7 +48,12 @@ public class DataDefinition(JsonElement json) {
     }
 }
 
-public class EAbility {
+public class StringEnum<T> where T : StringEnum<T> {
+    private static Dictionary<string, string>? _Dict;
+    public static Dictionary<string, string> ToDictionary() => _Dict ??= typeof(T).GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy).Where(x => x.IsLiteral && !x.IsInitOnly && x.FieldType == typeof(string)).ToDictionary(x => x.Name, x => (string)x.GetRawConstantValue()!);
+}
+
+public class EAbility : StringEnum<EAbility> {
     public const string AbsorbHP = "absorbHP";
     public const string AddCurseOnDamage = "addCurseOnDamage";
     public const string AddItem = "addItem";
@@ -99,11 +105,11 @@ public class EAbility {
     public const string ShuffleItemsOfEverybody = "shuffleItemsOfEverybody";
 }
 
-public class ECurse {
+public class ECurse : StringEnum<ECurse> {
     public const string Fog = "fog";
 }
 
-public class EElement {
+public class EElement : StringEnum<EElement> {
     public const string Fire = "fire";
     public const string Water = "water";
     public const string Wood = "wood";
@@ -112,7 +118,7 @@ public class EElement {
     public const string Darkness = "darkness";
 }
 
-public class EGuardian {
+public class EGuardian : StringEnum<EGuardian> {
     public const string Mars = "mars";
     public const string Mercury = "mercury";
     public const string Jupiter = "jupiter";

@@ -61,10 +61,13 @@ public class EAbility : StringEnum<EAbility> {
     public const string AttackDyingly = "attackDyingly";
     public const string AttackEveryEnemy = "attackEveryEnemy";
     public const string AttackSomebody = "attackSomebody";
+    public const string AttackTwice = "attackTwice";
     public const string AttractDanger = "attractDanger";
     public const string BlockMiracle = "blockMiracle";
     public const string BlockWeapon = "blockWeapon";
     public const string BoostCP = "boostCP";
+    public const string BoostCPOfEverybody = "boostCPOfEverybody";
+    public const string BoostCPToEnemy = "boostCPToEnemy";
     public const string BoostHP = "boostHP";
     public const string BoostHPOrDealDamage = "boostHPOrDealDamage";
     public const string BoostMP = "boostMP";
@@ -72,9 +75,11 @@ public class EAbility : StringEnum<EAbility> {
     public const string BoostSomething = "boostSomething";
     public const string BounceMiracle = "bounceMiracle";
     public const string BounceWeapon = "bounceWeapon";
+    public const string Buy = "buy";
     public const string CallPhenomenon = "callPhenomenon";
     public const string CollectCPOfEverybody = "collectCPOfEverybody";
     public const string ConfuseEverybody = "confuseEverybody";
+    public const string ConsumeAllMP = "consumeAllMP"; // Magical stick
     public const string Counter2xAtk = "counter2xAtk";
     public const string CounterAtk = "counterAtk";
     public const string CounterBoost2xMP = "counterBoost2xMP";
@@ -84,7 +89,9 @@ public class EAbility : StringEnum<EAbility> {
     public const string Danger = "danger";
     public const string DealDamage = "dealDamage";
     public const string DealSameDamage = "dealSameDamage";
+    public const string Discard = "discard";
     public const string DoubleAtk = "doubleAtk";
+    public const string Exchange = "exchange";
     public const string FilterAtkElement = "filterAtkElement";
     public const string ReflectAnything = "reflectAnything";
     public const string ReflectMiracle = "reflectMiracle";
@@ -95,18 +102,28 @@ public class EAbility : StringEnum<EAbility> {
     public const string RemoveSomething = "removeSomething";
     public const string RemoveUsedMiracles = "removeUsedMiracles";
     public const string Revive = "revive";
+    public const string Sacrifice = "sacrifice";
     public const string SelfCurse = "selfCurse";
     public const string SelfCurseAndRedraw = "selfCurseAndRedraw";
+    public const string Sell = "sell";
     public const string SetCurseOfEverybody = "setCurseOfEverybody";
     public const string SetElement = "setElement";
     public const string SetGuardian = "setGuardian";
     public const string SetGuardianOfEverybody = "setGuardianOfEverybody";
     public const string SetHPOfEverybody = "setHPOfEverybody";
     public const string ShuffleItemsOfEverybody = "shuffleItemsOfEverybody";
+    public const string TakeCP = "takeCP";
 }
 
 public class ECurse : StringEnum<ECurse> {
+    public const string Cold = "cold";
+    public const string Fever = "fever";
+    public const string Hell = "hell";
+    public const string Heaven = "heaven";
     public const string Fog = "fog";
+    public const string Flash = "flash";
+    public const string Dream = "dream";
+    public const string Darkcloud = "darkcloud";
 }
 
 public class EElement : StringEnum<EElement> {

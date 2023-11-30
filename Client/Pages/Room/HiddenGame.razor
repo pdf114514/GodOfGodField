@@ -153,6 +153,117 @@
         return null;
     }
 
+    string? GetItemShortInformation(int modelId) => GetItemShortInformation(Resources.GetDataDefinitionByModelId(modelId));
+    string? GetItemShortInformation(DataDefinition? dataDef) {
+        if (dataDef is null) return null;
+        if (dataDef.IsArmor(out var armor)) {
+            if (armor.Def == 0) return null;
+            return armor.Ability switch {
+                EAbility.CounterAtk
+                    or EAbility.Counter2xAtk
+                    or EAbility.CounterCurse
+                    or EAbility.CounterBoost2xMP
+                    or EAbility.CounterTakeCP => L["texts.game.counter"],
+                _ => L["texts.game.def"].Replace("{{def}}", armor.Def.ToString())
+            };
+        } else if (dataDef.IsWeapon(out var weapon)) {
+            if (weapon.Ability == EAbility.AtkBy2xMP) return L["texts.game.atkBy2xMP"];
+            var text = L[$"texts.game.{(weapon.IsPlusAtk ? "plusAtk" : "atk")}"].Replace("{{atk}}", weapon.Atk.ToString());
+            if (weapon.HitRate != 0) text = L["texts.game.hitRate"].Replace("{{hitRate}}", weapon.HitRate.ToString()) + text;
+            return text;
+        } else if (dataDef.IsSundry(out var sundry)) {
+            return sundry.Ability switch {
+                EAbility.BoostCP => L["texts.abilities.boostCP"].Replace("{{cp}}", sundry.AbilityValue.ToString()),
+                EAbility.BoostHP => L["texts.abilities.boostHP"].Replace("{{hp}}", sundry.AbilityValue.ToString()),
+                EAbility.BoostHPOrDealDamage => L["texts.abilities.boostHP"].Replace("{{hp}}", sundry.AbilityValue.ToString()),
+                EAbility.BoostMP => L["texts.abilities.boostMP"].Replace("{{mp}}", sundry.AbilityValue.ToString()),
+                _ => null
+            };
+        } else if (dataDef.IsMiracle(out var miracle)) {
+            if (miracle.Atk != 0) {
+                var text = L[$"texts.game.{(miracle.IsPlusAtk ? "plusAtk" : "atk")}"].Replace("{{atk}}", miracle.Atk.ToString());
+                if (miracle.HitRate != 0) text = L["texts.game.hitRate"].Replace("{{hitRate}}", miracle.HitRate.ToString()) + text;
+                return text;
+            }
+            return miracle.Ability switch {
+                EAbility.AddCurse => L[$"texts.curseNames.{miracle.Curse}"],
+                EAbility.BoostCP => L["texts.abilities.boostCP"].Replace("{{cp}}", miracle.AbilityValue.ToString()),
+                EAbility.BoostHP => L["texts.abilities.boostHP"].Replace("{{hp}}", miracle.AbilityValue.ToString()),
+                _ => null
+            };
+        } else if (dataDef.IsGuardian(out var guardian)) {
+            if (guardian.Atk != 0) {
+                var text = L["texts.game.atk"].Replace("{{atk}}", guardian.Atk.ToString());
+                if (guardian.HitRate != 0) text = L["texts.game.hitRate"].Replace("{{hitRate}}", guardian.HitRate.ToString()) + text;
+                return text;
+            }
+            return guardian.Ability switch {
+                EAbility.AddCurse => L[$"texts.curseNames.{guardian.Curse}"],
+                EAbility.BoostCP
+                    or EAbility.BoostCPOfEverybody
+                    or EAbility.BoostCPToEnemy => L["texts.abilities.boostCP"].Replace("{{cp}}", guardian.AbilityValue.ToString()),
+                EAbility.BoostHP => L["texts.abilities.boostHP"].Replace("{{hp}}", guardian.AbilityValue.ToString()),
+                EAbility.BoostMP => L["texts.abilities.boostMP"].Replace("{{mp}}", guardian.AbilityValue.ToString()),
+                EAbility.TakeCP => L["texts.abilities.takeCP"].Replace("{{cp}}", guardian.AbilityValue.ToString()),
+                _ => null
+            };
+        } else if (dataDef.IsPhenomena(out var phenomena)) {
+            if (phenomena.Atk != 0) {
+                var text = L["texts.game.atk"].Replace("{{atk}}", phenomena.Atk.ToString());
+                if (phenomena.HitRate != 0) text = L["texts.game.hitRate"].Replace("{{hitRate}}", phenomena.HitRate.ToString()) + text;
+                return text;
+            }
+            return phenomena.Ability switch {
+                EAbility.BoostHP => L["texts.abilities.boostHP"].Replace("{{hp}}", phenomena.AbilityValue.ToString()),
+                _ => null
+            };
+        } else if (dataDef.IsDevil(out var devil)) {
+            return devil.Ability switch {
+                EAbility.DealDamage => L["texts.abilities.dealDamage"].Replace("{{damage}}", devil.AbilityValue.ToString()),
+                _ => null
+            };
+        } else if (dataDef.IsTrade(out _)) return null;
+        return null;
+    }
+
+    string? GetItemInformation(int modelId) => GetItemInformation(Resources.GetDataDefinitionByModelId(modelId));
+    string? GetItemInformation(DataDefinition? dataDef) {
+        if (dataDef is null) return null;
+        if (dataDef.IsArmor(out var armor)) {
+            if (armor.Atk != 0) {
+                var text = L[$"texts.game.{(armor.IsPlusAtk ? "plusAtk" : "atk")}"].Replace("{{atk}}", armor.Atk.ToString());
+                if (armor.HitRate != 0) text = L["texts.game.hitRate"].Replace("{{hitRate}}", armor.HitRate.ToString()) + text;
+                return text;
+            }
+            return armor.Ability switch {
+                EAbility.BlockMiracle => L["texts.abilities.blockMiracle"],
+                EAbility.BounceMiracle => L["texts.abilities.bounceMiracle"],
+                EAbility.Counter2xAtk => armor.HitRate == 0 ? L["texts.abilities.counter2xAtk"] : L["texts.game.hitRate"].Replace("{{hitRate}}", armor.HitRate.ToString()) + L["texts.abilities.counter2xAtk"],
+                EAbility.CounterAtk => armor.HitRate == 0 ? L["texts.abilities.counterAtk"] : L["texts.game.hitRate"].Replace("{{hitRate}}", armor.HitRate.ToString()) + L["texts.abilities.counterAtk"],
+                EAbility.CounterBoost2xMP => L["texts.abilities.counterBoost2xMP"],
+                EAbility.CounterCurse => L[$"texts.curseNames.{armor.Curse}"],
+                EAbility.CounterTakeCP => L["texts.abilities.counterTakeCP"],
+                EAbility.CutCost => L["texts.abilities.cutCost"],
+                EAbility.FilterAtkElement => L["texts.abilities.filterAtkElement"],
+                EAbility.ReflectAnything => L["texts.abilities.reflectAnything"],
+                EAbility.ReflectMiracle => L["texts.abilities.reflectMiracle"],
+                EAbility.SelfCurse => L["texts.abilities.selfCurse"].Replace("{{curse}}", L[$"texts.curseNames.{armor.Curse}"]),
+                EAbility.SelfCurseAndRedraw => L["texts.abilities.selfCurseAndRedraw"].Replace("{{curse}}", L[$"texts.curseNames.{armor.Curse}"]),
+                _ => null
+            };
+        } else if (dataDef.IsWeapon(out var weapon)) {
+            if (weapon.Def != 0) return L["texts.game.def"].Replace("{{def}}", weapon.Def.ToString());
+            return weapon.Ability switch {
+                EAbility.AddCurseOnDamage => L["texts.abilities.addCurseOnDamage"].Replace("{{curse}}", L[$"texts.curseNames.{weapon.Curse}"]),
+                EAbility.AtkBy2xMP => L["texts.abilities.consumeAllMP"],
+                EAbility.Danger => L["texts.abilities.attackSomebody"],
+                EAbility.SetElement => L["texts.abilities.setElement"].Replace("{{element}}", L[$"texts.elementNames.{weapon.Element}"]),
+                _ => weapon.Ability is null ? null : L[$"texts.abilities.{weapon.Ability}"]
+            };
+        }
+        return null;
+    }
+
     void ProcessEvent() {
         if (ProcessingEventTask is not null || !(ProcessingEventTask?.IsCompleted ?? true)) {
             Console.WriteLine($"TASK ALREADY RUNNING: {ProcessingEventTask}, {ProcessingEventTask?.IsCompleted}");

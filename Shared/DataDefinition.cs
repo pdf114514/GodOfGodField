@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Text.Json;
@@ -13,15 +14,7 @@ public class DataDefinition(JsonElement json) {
 
     public Stream GetImageStream() => Resources.GetResource($"images/items/{Category}/{ImageName}.png")!;
 
-    public bool IsT<T>([NotNullWhen(true)] out T? data) where T : DataDefinition {
-        if (this is T t) {
-            data = t;
-            return true;
-        } else {
-            data = null;
-            return false;
-        }
-    }
+    public bool IsT<T>([NotNullWhen(true)] out T? data) where T : DataDefinition => (data = this as T) != null;
 
     public bool IsArmor([NotNullWhen(true)] out ArmorDataDefinition? data) => IsT(out data);
     public bool IsDevil([NotNullWhen(true)] out DevilDataDefitition? data) => IsT(out data);
@@ -49,12 +42,13 @@ public class DataDefinition(JsonElement json) {
 }
 
 public class StringEnum<T> where T : StringEnum<T> {
-    private static Dictionary<string, string>? _Dict;
-    public static Dictionary<string, string> ToDictionary() => _Dict ??= typeof(T).GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy).Where(x => x.IsLiteral && !x.IsInitOnly && x.FieldType == typeof(string)).ToDictionary(x => x.Name, x => (string)x.GetRawConstantValue()!);
+    private static ReadOnlyDictionary<string, string>? _Dict;
+    public static ReadOnlyDictionary<string, string> ToDictionary() => _Dict ??= typeof(T).GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy).Where(x => x.IsLiteral && !x.IsInitOnly && x.FieldType == typeof(string)).ToDictionary(x => x.Name, x => (string)x.GetRawConstantValue()!).AsReadOnly();
 }
 
 public class EAbility : StringEnum<EAbility> {
     public const string AbsorbHP = "absorbHP";
+    public const string AddCurse = "addCurse";
     public const string AddCurseOnDamage = "addCurseOnDamage";
     public const string AddItem = "addItem";
     public const string AtkBy2xMP = "atkBy2xMP";
@@ -77,6 +71,7 @@ public class EAbility : StringEnum<EAbility> {
     public const string BounceWeapon = "bounceWeapon";
     public const string Buy = "buy";
     public const string CallPhenomenon = "callPhenomenon";
+    public const string CategoryWeapons = "categoryWeapons";
     public const string CollectCPOfEverybody = "collectCPOfEverybody";
     public const string ConfuseEverybody = "confuseEverybody";
     public const string ConsumeAllMP = "consumeAllMP"; // Magical stick

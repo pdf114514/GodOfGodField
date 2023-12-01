@@ -143,14 +143,10 @@ public class EGuardian : StringEnum<EGuardian> {
     public const string Moon = "moon";
 }
 
-public class TradeDataDefinition : DataDefinition {
-    public int Price { get; init; } = 0;
-    public int GiftRate { get; init; } = 0;
-
-    public TradeDataDefinition(JsonElement json) : base(json) {
-        Price = json.TryGetProperty("price", out var price) ? price.GetInt32() : 0;
-        GiftRate = json.TryGetProperty("giftRate", out var giftRate) ? giftRate.GetInt32() : 0;
-    }
+public class TradeDataDefinition(JsonElement json) : DataDefinition(json) {
+    public int Price { get; init; } = json.TryGetProperty("price", out var price) ? price.GetInt32() : 0;
+    public int GiftRate { get; init; } = json.TryGetProperty("giftRate", out var giftRate) ? giftRate.GetInt32() : 0;
+    public string? Ability { get; init; } = json.TryGetProperty("ability", out var ability) ? ability.GetString() : null;
 }
 
 public class WeaponDataDefinition(JsonElement json) : DataDefinition(json) {

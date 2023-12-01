@@ -48,7 +48,8 @@
                     <img id="FocusedItemCard" />
                     <span class="Element@(GetItemElement(FocusedItemDataDefinition) ?? "")">@FocusedItemDataDefinition.Name</span>
                     <!-- TODO show description text, atk, def, abilityValue or something and price, miracle's cost, ... -->
-                    <span class="Element@(GetItemElement(FocusedItemDataDefinition) ?? "")">TestDescription</span>
+                    <span class="Element@(GetItemElement(FocusedItemDataDefinition) ?? "")">@GetItemShortInformation(FocusedItemDataDefinition)</span>
+                    <span class="Element@(GetItemElement(FocusedItemDataDefinition) ?? "")">@GetItemInformation(FocusedItemDataDefinition)</span>
                 </div>
             }
         </div>
@@ -173,10 +174,10 @@
             return text;
         } else if (dataDef.IsSundry(out var sundry)) {
             return sundry.Ability switch {
-                EAbility.BoostCP => L["texts.abilities.boostCP"].Replace("{{cp}}", sundry.AbilityValue.ToString()),
                 EAbility.BoostHP => L["texts.abilities.boostHP"].Replace("{{hp}}", sundry.AbilityValue.ToString()),
                 EAbility.BoostHPOrDealDamage => L["texts.abilities.boostHP"].Replace("{{hp}}", sundry.AbilityValue.ToString()),
                 EAbility.BoostMP => L["texts.abilities.boostMP"].Replace("{{mp}}", sundry.AbilityValue.ToString()),
+                EAbility.BoostMPAndAddCurse => L["texts.abilities.boostMP"].Replace("{{mp}}", sundry.AbilityValue.ToString()),
                 _ => null
             };
         } else if (dataDef.IsMiracle(out var miracle)) {
@@ -260,6 +261,40 @@
                 EAbility.SetElement => L["texts.abilities.setElement"].Replace("{{element}}", L[$"texts.elementNames.{weapon.Element}"]),
                 _ => weapon.Ability is null ? null : L[$"texts.abilities.{weapon.Ability}"]
             };
+        } else if (dataDef.IsSundry(out var sundry)) {
+            if (sundry.Atk != 0) {
+                var text = L[$"texts.game.{(sundry.IsPlusAtk ? "plusAtk" : "atk")}"].Replace("{{atk}}", sundry.Atk.ToString());
+                // if (sundry.HitRate != 0) text = L["texts.game.hitRate"].Replace("{{hitRate}}", sundry.HitRate.ToString()) + text;
+                return text;
+            }
+            return sundry.Ability switch {
+                EAbility.BoostHPOrDealDamage => L["texts.abilities.orDealDamage"].Replace("{{damage}}", sundry.AbilityValue.ToString()),
+                EAbility.BoostMPAndAddCurse => L[$"texts.curseNames.{sundry.Curse}"],
+                EAbility.Revive => L["texts.abilities.revive"].Replace("{{hp}}", sundry.AbilityValue.ToString()),
+                _ => sundry.Ability is null ? null : L[$"texts.abilities.{sundry.Ability}"]
+            };
+        } else if (dataDef.IsMiracle(out var miracle)) {
+            if (miracle.Atk == 0 && miracle.Ability == EAbility.AddCurse) return null;
+            return miracle.Ability switch {
+                EAbility.AddCurseOnDamage => L["texts.abilities.addCurseOnDamage"].Replace("{{curse}}", L[$"texts.curseNames.{miracle.Curse}"]),
+                _ => miracle.Ability is null ? null : L[$"texts.abilities.{miracle.Ability}"]
+            };
+        } else if (dataDef.IsGuardian(out var guardian)) {
+            return guardian.Ability switch {
+                EAbility.AddCurseOnDamage => L["texts.abilities.addCurseOnDamage"].Replace("{{curse}}", L[$"texts.curseNames.{guardian.Curse}"]),
+                EAbility.CategoryWeapons => null,
+                _ => guardian.Ability is null ? null : L[$"texts.abilities.{guardian.Ability}"]
+            };
+        } else if (dataDef.IsPhenomena(out var phenomena)) {
+            return phenomena.Ability switch {
+                EAbility.SetCurseOfEverybody => L["texts.abilities.setCurseOfEverybody"].Replace("{{curse}}", L[$"texts.curseNames.{phenomena.Curse}"]),
+                EAbility.SetHPOfEverybody => L["texts.abilities.setHPOfEverybody"].Replace("{{hp}}", phenomena.AbilityValue.ToString()),
+                _ => phenomena.Ability is null ? null : L[$"texts.abilities.{phenomena.Ability}"]
+            };
+        } else if (dataDef.IsDevil(out var devil)) {
+            return devil.Ability is null ? null : L[$"texts.abilities.{devil.Ability}"];
+        } else if (dataDef.IsTrade(out var trade)) {
+            return trade.Ability is null ? null : L[$"texts.abilities.{trade.Ability}"];
         }
         return null;
     }

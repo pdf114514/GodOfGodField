@@ -13,6 +13,7 @@ public static class IJSRuntimeExtension {
     public static async Task<IJSObjectReference> GetElementById(this IJSRuntime jsRuntime, string id) => await jsRuntime.InvokeAsync<IJSObjectReference>("document.getElementById", id);
     public static async Task<IJSObjectReference> GetElementByClassName(this IJSRuntime jsRuntime, string className) => await (await jsRuntime.InvokeAsync<IJSObjectReference>("document.getElementsByClassName", className)).InvokeAsync<IJSObjectReference>("at", 0);
     public static async Task SetImage(this IJSRuntime jsRuntime, IJSObjectReference element, DotNetStreamReference stream) => await jsRuntime.InvokeVoidAsync("SetImage", element, stream);
+    public static async Task RemoveImage(this IJSRuntime jsRuntime, IJSObjectReference element) => await jsRuntime.InvokeVoidAsync("RemoveImage", element);
     public static async Task SetBackgroundImage(this IJSRuntime jsRuntime, IJSObjectReference element, DotNetStreamReference stream) => await jsRuntime.InvokeVoidAsync("SetBackgroundImage", element, stream);
     public static async Task PlayAudio(this IJSRuntime jsRuntime, DotNetStreamReference stream) => await jsRuntime.InvokeVoidAsync("PlayAudio", stream);
     public static void ShowMessage(this IJSRuntime jsRuntime, string message) => jsRuntime.InvokeVoid("ShowMessage", message);

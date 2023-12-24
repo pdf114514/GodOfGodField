@@ -8,6 +8,10 @@ async function SetImage(elementRef, stream) {
     elementRef.src = url;
 }
 
+function RemoveImage(elementRef) {
+    elementRef.src = "";
+}
+
 async function SetBackgroundImage(elementRef, stream) {
     const arrayBuffer = await stream.arrayBuffer();
     const blob = new Blob([arrayBuffer]);

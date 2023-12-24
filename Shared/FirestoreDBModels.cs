@@ -85,6 +85,17 @@ public class HiddenRoom {
                 Name = element.GetProperty("name").GetStringValue();
                 UserId = element.GetProperty("userId").GetStringValue();
             }
+
+            public _Player() {
+                HP = 0;
+                MP = 0;
+                CP = 0;
+                Id = 0;
+                Team = 0;
+                Items = [];
+                Name = "";
+                UserId = "";
+            }
         }
 
         public _Game(JsonElement element) {
@@ -97,6 +108,18 @@ public class HiddenRoom {
             TurnCount = element.GetProperty("turnCount").GetIntValue();
             TurnPlayerId = element.GetProperty("turnPlayerId").GetIntValue();
             UpdateCount = element.GetProperty("updateCount").GetIntValue();
+        }
+
+        public _Game() {
+            DiseasePlayerId = 0;
+            Events = [];
+            GiftPlayerIds = [];
+            GuardianPlayerIds = [];
+            Players = [];
+            TieBreakerTurnCount = 0;
+            TurnCount = 0;
+            TurnPlayerId = 0;
+            UpdateCount = 0;
         }
     }
 
@@ -111,5 +134,13 @@ public class HiddenRoom {
             Game = new(document.RootElement.GetProperty("game").GetMapFieldsValue());
             TieBreakerTurnCount = Game.TieBreakerTurnCount;
         }
+    }
+
+    public HiddenRoom() {
+        Password = "";
+        Users = [];
+        Entries = [];
+        Game = null;
+        TieBreakerTurnCount = 0;
     }
 }

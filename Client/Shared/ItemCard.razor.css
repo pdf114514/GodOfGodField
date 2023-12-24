@@ -1,0 +1,84 @@
+.ItemCardContainer {
+    margin-right: 10px;
+}
+
+.ItemCard {
+    width: 300px;
+    height: 90px;
+    padding: 5px;
+    background-color: rgb(85, 187, 153);
+    border-radius: 5px;
+    transition-duration: 500ms;
+    transition-timing-function: ease-out;
+}
+
+.ItemCard > img {
+    width: 80px;
+    height: 80px;
+    float: left;
+    margin-right: 5px;
+}
+
+.ItemCard > span:nth-child(2) {
+    display: block;
+    width: 205px;
+    float: right;
+    padding-left: 5px;
+    border-top-right-radius: 5px;
+    background-color: rgb(221, 255, 204);
+    font-size: 20px;
+    font-family: sans-serif;
+    font-weight: bold;
+}
+
+.ItemCard > div:nth-child(3) {
+    display: block;
+    width:  205px;
+    height: 46px;
+    float: right;
+    padding-left: 5px;
+    margin-top: 2px;
+    border-bottom-right-radius: 5px;
+    background-color: rgb(221, 255, 204);
+}
+
+.ItemCard > div:nth-child(3) > span:first-child {
+    display: block;
+    font-size: 20px;
+    font-family: sans-serif;
+    font-weight: bold;
+    line-height: 25px;
+}
+
+.ItemCard > div:nth-child(3) > span:first-child > img {
+    width: 20px;
+    height: 20px;
+}
+
+.ItemCard > div:nth-child(3) > span:first-child > img[src=""] {
+    visibility: hidden;
+}
+
+.ElementFire {
+    color: rgb(255, 102, 102) !important;
+}
+
+.ElementWater {
+    color: rgb(102, 102, 255) !important;
+}
+
+.ElementWood {
+    color: rgb(255, 153, 0) !important;
+}
+
+.ElementStone {
+    color: rgb(102, 136, 170) !important;
+}
+
+.ElementLight {
+    color: rgb(197, 197, 0) !important;
+}
+
+.ElementDarkness {
+    color: rgb(170, 85, 204) !important;
+}

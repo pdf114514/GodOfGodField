@@ -6,6 +6,10 @@
     justify-content: center;
 }
 
+img {
+    -webkit-user-drag: none;
+}
+
 .ElementFire {
     color: rgb(255, 102, 102) !important;
 }

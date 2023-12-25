@@ -1,3 +1,7 @@
+img {
+    -webkit-user-drag: none;
+}
+
 .ItemCardContainer {
     margin-right: 10px;
 }
@@ -42,7 +46,13 @@
     background-color: rgb(221, 255, 204);
 }
 
-.ItemCard > div:nth-child(3) > span:first-child {
+.ItemCard > div:nth-child(3) > div:first-child {
+    height: 100%;
+    width: calc(100% - 52px);
+    float: left;
+}
+
+.ItemCard > div:nth-child(3) > div:first-child > span:first-child {
     display: block;
     font-size: 20px;
     font-family: sans-serif;
@@ -50,13 +60,56 @@
     line-height: 25px;
 }
 
-.ItemCard > div:nth-child(3) > span:first-child > img {
+.ItemCard > div:nth-child(3) > div:first-child > span:first-child > img {
     width: 20px;
     height: 20px;
 }
 
-.ItemCard > div:nth-child(3) > span:first-child > img[src=""] {
+.ItemCard > div:nth-child(3) > div:first-child > span:first-child > img[src=""] {
     visibility: hidden;
+}
+
+.ItemCard > div:nth-child(3) > span:last-child {
+    float: right;
+    text-align: center;
+}
+
+.Price {
+    display: block;
+    width: 44px;
+    height: 44px;
+    line-height: 44px;
+    background-color: rgb(255, 255, 170);
+    border: 1px solid rgb(221, 221, 136);
+    border-radius: 50%;
+    font-family: sans-serif;
+    font-size: 18px;
+    pointer-events: none;
+    user-select: none;
+    color: rgb(79, 79, 79);
+    margin-top: 1px;
+    margin-right: 1px;
+}
+
+.Cost {
+    display: block;
+    width: 50px;
+    height: 42px;
+    line-height: 22px;
+    background-color: rgb(119, 119, 255);
+    border-radius: 5px;
+    font-family: sans-serif;
+    font-size: 16px;
+    pointer-events: none;
+    user-select: none;
+    color: rgb(238, 238, 255);
+    margin-top: 2px;
+    margin-right: 2px;
+    padding-top: 1.5px;
+}
+
+.NoShortInformation {
+    display: none !important;
 }
 
 .ElementFire {

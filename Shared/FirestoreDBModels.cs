@@ -92,7 +92,7 @@ public class HiddenRoom {
                 CP = 0;
                 Id = 0;
                 Team = 0;
-                Items = [];
+                Items = new();
                 Name = "";
                 UserId = "";
             }
@@ -101,8 +101,8 @@ public class HiddenRoom {
         public _Game(JsonElement element) {
             DiseasePlayerId = element.TryGetProperty("diseasePlayerId", out var diseasePlayerId) ? diseasePlayerId.GetIntValue() : 0;
             Events = element.GetProperty("events").GetArrayEnumerator().Select(x => new _Event(x.GetMapFieldsValue())).ToList();
-            GiftPlayerIds = element.TryGetProperty("giftPlayerIds", out var giftPlayerIds) ? giftPlayerIds.GetArrayEnumerator().Select(x => x.GetIntValue()).ToList() : [];
-            GuardianPlayerIds = element.TryGetProperty("guardianPlayerIds", out var guardianPlayerIds) ? guardianPlayerIds.GetArrayEnumerator().Select(x => x.GetIntValue()).ToList() : [];
+            GiftPlayerIds = element.TryGetProperty("giftPlayerIds", out var giftPlayerIds) ? giftPlayerIds.GetArrayEnumerator().Select(x => x.GetIntValue()).ToList() : new();
+            GuardianPlayerIds = element.TryGetProperty("guardianPlayerIds", out var guardianPlayerIds) ? guardianPlayerIds.GetArrayEnumerator().Select(x => x.GetIntValue()).ToList() : new();
             Players = element.GetProperty("players").GetArrayEnumerator().Select(x => new _Player(x.GetMapFieldsValue())).ToList();
             TieBreakerTurnCount = element.GetProperty("tiebreakerTurnCount").GetIntValue();
             TurnCount = element.GetProperty("turnCount").GetIntValue();
@@ -112,10 +112,10 @@ public class HiddenRoom {
 
         public _Game() {
             DiseasePlayerId = 0;
-            Events = [];
-            GiftPlayerIds = [];
-            GuardianPlayerIds = [];
-            Players = [];
+            Events = new();
+            GiftPlayerIds = new();
+            GuardianPlayerIds = new();
+            Players = new();
             TieBreakerTurnCount = 0;
             TurnCount = 0;
             TurnPlayerId = 0;
@@ -128,7 +128,7 @@ public class HiddenRoom {
         Users = document.RootElement.GetProperty("users").GetArrayEnumerator().Select(x => new _User(x.GetMapFieldsValue())).ToList();
         if (document.RootElement.EnumerateObject().Any(x => x.NameEquals("entry"))) {
             var entry = document.RootElement.GetProperty("entry").GetMapFieldsValue();
-            Entries = entry.TryGetProperty("users", out var entries) ? entries.GetArrayEnumerator().Select(x => new _UserEntry(x.GetMapFieldsValue())).ToList() : [];
+            Entries = entry.TryGetProperty("users", out var entries) ? entries.GetArrayEnumerator().Select(x => new _UserEntry(x.GetMapFieldsValue())).ToList() : new();
             TieBreakerTurnCount = entry.GetProperty("tiebreakerTurnCount").GetIntValue();
         } else if (document.RootElement.EnumerateObject().Any(x => x.NameEquals("game"))) {
             Game = new(document.RootElement.GetProperty("game").GetMapFieldsValue());
@@ -138,8 +138,8 @@ public class HiddenRoom {
 
     public HiddenRoom() {
         Password = "";
-        Users = [];
-        Entries = [];
+        Users = new();
+        Entries = new();
         Game = null;
         TieBreakerTurnCount = 0;
     }

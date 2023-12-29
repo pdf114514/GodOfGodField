@@ -1,4 +1,4 @@
-@page "/rooms/hidden/game"
+﻿@page "/rooms/hidden/game"
 @using System.Collections.Concurrent
 @using System.Text.Json
 
@@ -10,11 +10,11 @@
             }
             @if (Debug) {
                 <div class="ActionMenuLeftSide">
-                    <div class="Team0">USER</div>
+                    <PlayerName Name="Player" TeamId="0" />
                 </div>
                 <div class="Arrow ToRight" />
                 <div class="ActionMenuRightSide">
-                    <div class="Team0">ENEMY</div>
+                    <PlayerName Name="Player" TeamId="0" />
                 </div>
             }
         </div>

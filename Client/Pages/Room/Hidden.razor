@@ -10,10 +10,9 @@
         <div class="Entries">
             @for (var i = 0; i < 9; i++) {
                 @if (Room is not null && Room.Entries is not null && Room.Entries.Count > i) {
-                    <!-- <div class="@($"Team{Room.Entries[i].Team}")">@Room.Users.First(x => x.Id == Room.Entries[i].Id).Name</div> -->
-                    <PlayerName TeamId="Room.Entries[i].Team" Name="@Room.Users.First(x => x.Id == Room.Entries[i].Id).Name" />
+                    <div class="@($"Team{Room.Entries[i].Team}")">@Room.Users.First(x => x.Id == Room.Entries[i].Id).Name</div>
                 } else {
-                    <PlayerName TeamId="-1" Name="" />
+                    <div />
                 }
             }
         </div>

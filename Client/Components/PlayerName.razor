@@ -1,0 +1,10 @@
+@if (TeamId >= 0) {
+    <div class="@($"Team{TeamId}")">@Name</div>
+} else {
+    <div />
+}
+
+@code {
+    [Parameter] public int TeamId { get; set; }
+    [Parameter] public string Name { get; set; } = string.Empty;
+}

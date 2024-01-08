@@ -1,10 +1,9 @@
-@if (TeamId >= 0) {
-    <div class="@($"Team{TeamId}")">@Name</div>
+@if (Player.Team >= 0) {
+    <div class="PlayerName @($"Team{Player.Team}")">@Player.Name</div>
 } else {
-    <div />
+    <div class="PlayerName" />
 }
 
 @code {
-    [Parameter] public int TeamId { get; set; }
-    [Parameter] public string Name { get; set; } = string.Empty;
+    [Parameter] public required HiddenRoom._Game._Player Player { get; set; }
 }

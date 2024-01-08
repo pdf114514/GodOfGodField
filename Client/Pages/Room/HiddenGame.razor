@@ -10,22 +10,17 @@
             }
             @if (Debug) {
                 <div class="ActionMenuLeftSide">
-                    <PlayerName Name="Player" TeamId="0" />
+                    <PlayerName Player=@(new() { Team = 0, Name = "Player1" }) />
                 </div>
                 <div class="Arrow ToRight" />
                 <div class="ActionMenuRightSide">
-                    <PlayerName Name="Player" TeamId="0" />
+                    <PlayerName Player=@(new() { Team = 0, Name = "Player2" }) />
                 </div>
             }
         </div>
         <div class="PlayerList">
             @if (Players is not null) @foreach (var player in Players) {
-                <div class="@($"Team{player.Team}")">
-                    <span>@player.Name</span>
-                    <span>@L["texts.game.hp"] <span>@player.HP</span></span>
-                    <span>@L["texts.game.mp"] <span>@player.MP</span></span>
-                    <span>@L["texts.game.cp"] <span>@player.CP</span></span>
-                </div>
+                <PlayerEntry Player=player />
             }
         </div>
     </div>
@@ -172,7 +167,7 @@
                             }
                             case "debugAddItem": {
                                 if (Room is null) Room = new() { Game = new() };
-                                if (LocalPlayer is null) Players!.Add(new() { UserId = AppState.LocalId });
+                                if (LocalPlayer is null) Players!.Add(new() { UserId = AppState.LocalId, Name = AppState.UserName });
                                 var item = new HiddenRoom._Game._Player._Item() { Id = LocalPlayer!.Items.Count, ModelId = e.Json.GetProperty("modelId").GetInt32() };
                                 LocalPlayer!.Items.Add(item);
                                 if (!ItemStates.TryGetValue(item, out var state)) ItemStates[item] = state = new();

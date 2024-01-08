@@ -9,14 +9,12 @@
                         <img id="ItemCardElement@(Uuid)">
                         @L.GetItemShortInformation(ItemDataDefinition)
                     </span>
-                    <span class="Element@(L.GetItemElement(ItemDataDefinition) ?? "")">@L.GetItemInformation(ItemDataDefinition)</span>
+                    <span class="Element@(L.GetItemElement(ItemDataDefinition) ?? "")">@((MarkupString)(L.GetItemInformation(ItemDataDefinition) ?? string.Empty))</span>
                 </div>
                 @if (ItemDataDefinition.Json.TryGetProperty("cost", out var cost)) {
                     <span class="Cost">@((MarkupString)L["texts.game.cost"].Replace("{{mp}}", cost.GetInt32().ToString()))</span>
                 } else if (ItemDataDefinition.Json.TryGetProperty("price", out var price)) {
                     <span class="Price">@L["texts.game.price"].Replace("{{price}}", price.GetInt32().ToString())</span>
-                } else {
-                    <span class="Price">@L["texts.game.price"].Replace("{{price}}", "-")</span>
                 }
             </div>
         </div>

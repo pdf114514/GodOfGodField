@@ -1,0 +1,151 @@
+.PlayerEntry {
+    display: flex;
+    width: min(390px, 80%);
+    height: min(40px, 80%);
+}
+
+.PlayerEntry span {
+    user-select: none;
+}
+
+.PlayerEntry.Team0 {
+    --TeamColor: rgb(238, 238, 238);
+    --TeamSubColor: rgb(170, 170, 170);
+}
+
+.PlayerEntry.Team1 {
+    --TeamColor: rgb(204, 255, 204);
+    --TeamSubColor: rgb(136, 187, 136);
+}
+
+.PlayerEntry.Team2 {
+    --TeamColor: rgb(255, 204, 204);
+    --TeamSubColor: rgb(187, 136, 136);
+}
+
+.PlayerEntry.Team3 {
+    --TeamColor: rgb(255, 255, 204);
+    --TeamSubColor: rgb(187, 187, 136);
+}
+
+.PlayerEntry.Team4 {
+    --TeamColor: rgb(204, 204, 255);
+    --TeamSubColor: rgb(136, 136, 187);
+}
+
+.PlayerEntry > .PlayerTeamIcon {
+    display: block;
+    width: 36px;
+    height: 40px;
+    background-color: var(--TeamColor, rgb(238, 238, 238));
+    border-top-left-radius: 20px;
+    border-bottom-left-radius: 20px;
+    border: solid 1px var(--TeamSubColor, rgb(170, 170, 170));
+    border-right: none;
+}
+
+.PlayerEntry > .PlayerTeamIcon::before {
+    content: "";
+    display: block;
+    width: 18px;
+    height: 18px;
+    position: relative;
+    top: 10px;
+    left: 7px;
+}
+
+.PlayerEntry > .PlayerName {
+    display: block;
+    width: 135px;
+    height: 40px;
+    text-align: center;
+    font-family: sans-serif;
+    font-size: 25px;
+    font-weight: bold;
+    color: rgb(0, 143, 111);
+    line-height: 40px;
+    background-color: var(--TeamColor, rgb(238, 238, 238));
+    border: solid 1px var(--TeamSubColor, rgb(170, 170, 170));
+    border-left: none;
+    border-right: none;
+}
+
+.PlayerEntry > .PlayerState {
+    width: 180px;
+    background-color: var(--TeamColor, rgb(238, 238, 238));
+    border: solid 1px var(--TeamSubColor, rgb(170, 170, 170));
+    border-left: none;
+}
+
+.PlayerEntry > .PlayerState > .PlayerIntegers {
+    height: 24px;
+    display: flex;
+    align-items: baseline;
+    padding-right: 5px;
+}
+
+.PlayerEntry > .PlayerState > .PlayerCurses {
+    height: 16px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.PlayerEntry > .PlayerState > .PlayerIntegers > span {
+    width: 30px;
+    height: 26px;
+    line-height: 26px;
+    font-family: sans-serif;
+    font-size: 14px;
+    font-weight: bold;
+    user-select: none;
+    text-align: right;
+    color: rgb(102, 136, 136);
+}
+
+.PlayerEntry > .PlayerState > .PlayerIntegers > span:nth-child(2n) {
+    color: rgb(79, 79, 79);
+    font-size: 20px;
+}
+
+/* TODO make these better because they are out of alignment for a bit  */
+
+.PlayerEntry.Team0 > .PlayerTeamIcon::before {
+    background-color: var(--TeamSubColor);
+    border-radius: 9px;
+}
+
+.PlayerEntry.Team1 > .PlayerTeamIcon::before {
+    border-bottom: 18px solid var(--TeamSubColor);
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+    top: 18px;
+    left: 20px;
+}
+
+.PlayerEntry.Team2 > .PlayerTeamIcon::before {
+    border-bottom: 18px solid var(--TeamSubColor);
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    transform: rotate(180deg) translate(50%, 50%);
+    width: 20px;
+    height: 20px;
+    top: 22px;
+    left: 20px;
+}
+
+.PlayerEntry.Team3 > .PlayerTeamIcon::before {
+    border-bottom: 18px solid var(--TeamSubColor);
+    transform: rotate(45deg) scale(0.8);
+    top: 12px;
+    left: 12px;
+}
+
+.PlayerEntry.Team4 > .PlayerTeamIcon::before {
+    border-bottom: 18px solid var(--TeamSubColor);
+    transform: scale(0.9);
+    top: 10px;
+    left: 14px;
+}

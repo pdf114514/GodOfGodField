@@ -1,4 +1,4 @@
-div {
+.PlayerName {
     width: min(260px, 100%);
     height: 30px;
     border-radius: 15px;
@@ -12,7 +12,7 @@ div {
     user-select: none;
 }
 
-div::after {
+.PlayerName::after {
     content: "";
     display: block;
     width: 18px;
@@ -22,22 +22,22 @@ div::after {
     left: 7px;
 }
 
-div.Team0 {
+.PlayerName.Team0 {
     border: solid 1px rgb(170, 170, 170);
     background-color: rgb(238, 238, 238);
 }
 
-div.Team0::after {
+.PlayerName.Team0::after {
     background-color: rgb(170, 170, 170);
     border-radius: 9px;
 }
 
-div.Team1 {
+.PlayerName.Team1 {
     border: solid 1px rgb(136, 187, 136);
     background-color: rgb(204, 255, 204);
 }
 
-div.Team1::after {
+.PlayerName.Team1::after {
     border-bottom: 18px solid rgb(136, 187, 136);
     border-left: 10px solid transparent;
     border-right: 10px solid transparent;
@@ -48,12 +48,12 @@ div.Team1::after {
     left: 16px;
 }
 
-div.Team2 {
+.PlayerName.Team2 {
     border: solid 1px rgb(187, 136, 136);
     background-color: rgb(255, 204, 204);
 }
 
-div.Team2::after {
+.PlayerName.Team2::after {
     border-bottom: 18px solid rgb(187, 136, 136);
     border-left: 10px solid transparent;
     border-right: 10px solid transparent;
@@ -64,24 +64,24 @@ div.Team2::after {
     left: 16px;
 }
 
-div.Team3 {
+.PlayerName.Team3 {
     border: solid 1px rgb(170, 170, 136);
     background-color: rgb(255, 255, 204);
 }
 
-div.Team3::after {
+.PlayerName.Team3::after {
     background-color: rgb(170, 170, 136);
     transform: rotate(45deg) translateX(-70%) scale(0.8);
     top: -16px;
     left: 16px;
 }
 
-div.Team4 {
+.PlayerName.Team4 {
     border: solid 1px rgb(136, 136, 187);
     background-color: rgb(204, 204, 255);
 }
 
-div.Team4::after {
+.PlayerName.Team4::after {
     background-color: rgb(136, 136, 187);
     transform: scale(0.9);
 }

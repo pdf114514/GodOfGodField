@@ -48,7 +48,7 @@ img {
 
 .ItemCard > div:nth-child(3) > div:first-child {
     height: 100%;
-    width: calc(100% - 52px);
+    /* width: calc(100% - 52px); */
     float: left;
 }
 

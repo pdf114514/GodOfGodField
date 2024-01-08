@@ -1,0 +1,33 @@
+<div class="PlayerEntry @($"Team{Player.Team}")">
+    <div class="PlayerTeamIcon" />
+    <span class="PlayerName">@Player.Name</span>
+    <div class="PlayerState">
+        <div class="PlayerIntegers">
+            <span>@L["texts.game.hp"]</span><span>@Player.HP</span>
+            <span>@L["texts.game.mp"]</span><span>@Player.MP</span>
+            <span>@L["texts.game.cp"]</span><span>@Player.CP</span>
+        </div>
+        <div class="PlayerCurses">
+            <img id="PlayerCurse@(Uuid)Disease">
+            <img id="PlayerCurse@(Uuid)Fog">
+            <img id="PlayerCurse@(Uuid)Flash">
+            <img id="PlayerCurse@(Uuid)Dream">
+            <img id="PlayerCurse@(Uuid)DarkCloud">
+        </div>
+    </div>
+    <img id="PlayerGuardian@(Uuid)" />
+</div>
+
+@code {
+    private List<string> Curses = new() { "Fog", "Flash", "Dream", "DarkCloud" };
+    private string Uuid = Guid.NewGuid().ToString();
+    [Parameter] public required HiddenRoom._Game._Player Player { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender) {
+        if (firstRender) {
+            foreach (var curse in Curses) {
+                await JS.SetImage(await JS.GetElementById($"PlayerCurse{Uuid}{curse}"), new(Resources.GetResource($"images/curses/small/{curse.ToLower()}.png")!));
+            }
+        }
+    }
+}

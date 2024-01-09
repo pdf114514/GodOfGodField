@@ -12,14 +12,14 @@
             <img id="PlayerCurse@(Uuid)Fog">
             <img id="PlayerCurse@(Uuid)Flash">
             <img id="PlayerCurse@(Uuid)Dream">
-            <img id="PlayerCurse@(Uuid)DarkCloud">
+            <img id="PlayerCurse@(Uuid)Darkcloud">
         </div>
     </div>
     <img id="PlayerGuardian@(Uuid)" />
 </div>
 
 @code {
-    private List<string> Curses = new() { "Fog", "Flash", "Dream", "DarkCloud" };
+    private List<string> Curses = new() { "Fog", "Flash", "Dream", "Darkcloud" };
     private string Uuid = Guid.NewGuid().ToString();
     [Parameter] public required HiddenRoom._Game._Player Player { get; set; }
 

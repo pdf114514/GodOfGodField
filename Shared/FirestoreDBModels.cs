@@ -59,6 +59,7 @@ public class HiddenRoom {
             public List<_Item> Items { get; init; }
             public string Name { get; init; }
             public string UserId { get; init; }
+            public List<string> Curses { get; init; }
 
             public class _Item {
                 public int Id { get; init; }
@@ -84,6 +85,7 @@ public class HiddenRoom {
                 Items = element.GetProperty("items").GetArrayEnumerator().Select(x => x.GetMapValue().TryGetFieldsValue(out var fields) ? new _Item(fields) : new _Item()).ToList();
                 Name = element.GetProperty("name").GetStringValue();
                 UserId = element.GetProperty("userId").GetStringValue();
+                Curses = element.TryGetProperty("curses", out var curses) ? curses.GetArrayEnumerator().Select(x => x.GetStringValue()).ToList() : [];
             }
 
             public _Player() {
@@ -95,6 +97,7 @@ public class HiddenRoom {
                 Items = [];
                 Name = "";
                 UserId = "";
+                Curses = [];
             }
         }
 

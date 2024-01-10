@@ -1,35 +1,30 @@
-<div class="ItemCardContainer">
-    @if (ItemDataDefinition is not null) {
-        <div class="ItemCard">
-            <img id="ItemCard@(Uuid)" />
-            <span class="Element@(L.GetItemElement(ItemDataDefinition) ?? "")">@ItemDataDefinition.Name</span>
-            <div>
-                <div>
-                    <span class="Element@(L.GetItemElement(ItemDataDefinition) ?? "") @(string.IsNullOrEmpty(L.GetItemShortInformation(ItemDataDefinition)) ? "NoShortInformation" : "")">
-                        <img id="ItemCardElement@(Uuid)">
-                        @L.GetItemShortInformation(ItemDataDefinition)
-                    </span>
-                    <span class="Element@(L.GetItemElement(ItemDataDefinition) ?? "")">@((MarkupString)(L.GetItemInformation(ItemDataDefinition) ?? string.Empty))</span>
-                </div>
-                @if (ItemDataDefinition.Json.TryGetProperty("cost", out var cost)) {
-                    <span class="Cost">@((MarkupString)L["texts.game.cost"].Replace("{{mp}}", cost.GetInt32().ToString()))</span>
-                } else if (ItemDataDefinition.Json.TryGetProperty("price", out var price)) {
-                    <span class="Price">@L["texts.game.price"].Replace("{{price}}", price.GetInt32().ToString())</span>
-                }
-            </div>
-        </div>
-    }
-</div>
+@inherits Card
+
+<!-- any better ways? -->
+@{ base.BuildRenderTree(__builder); }
 
 @code {
-    private string Uuid = Guid.NewGuid().ToString();
     [Parameter] public DataDefinition? ItemDataDefinition { get; set; }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender) {
+    protected override void OnParametersSet() {
         if (ItemDataDefinition is not null) {
-            await JS.SetImage(await JS.GetElementById($"ItemCard{Uuid}"), new(ItemDataDefinition.GetImageStream()));
-            if (ItemDataDefinition.Json.TryGetProperty("element", out var element)) await JS.SetImage(await JS.GetElementById($"ItemCardElement{Uuid}"), new(Resources.GetResource($"images/elements/{element.GetString()}.png")!));
-            else await JS.RemoveImage(await JS.GetElementById($"ItemCardElement{Uuid}"));
+            Showing = true;
+            Element = L.GetItemElement(ItemDataDefinition);
+            ImageStream = ItemDataDefinition.GetImageStream();
+            Title = ItemDataDefinition.Name;
+            ShortInformation = L.GetItemShortInformation(ItemDataDefinition);
+            Information = L.GetItemInformation(ItemDataDefinition);
+            if (ItemDataDefinition.Cost.HasValue) Cost = ItemDataDefinition.Cost.Value;
+            if (ItemDataDefinition.Price.HasValue) Price = ItemDataDefinition.Price.Value;
+        } else {
+            Showing = false;
+            Element = null;
+            ImageStream = null;
+            Title = null;
+            ShortInformation = null;
+            Information = null;
+            Cost = null;
+            Price = null;
         }
     }
 }

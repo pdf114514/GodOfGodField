@@ -20,7 +20,7 @@
         </div>
         <div class="PlayerList">
             @if (Players is not null) @foreach (var player in Players) {
-                <PlayerEntry Player=player />
+                <PlayerEntry Player=player OnMouseOverCurse="OnMouseOverCurse" />
             }
         </div>
     </div>
@@ -37,7 +37,7 @@
                 </div>
             }
         </div>
-        <ItemCard ItemDataDefinition=FocusedItemDataDefinition />
+        @FocusedCard
     </div>
 </div>
 
@@ -59,7 +59,7 @@
     HiddenRoom? Room;
     List<HiddenRoom._Game._Player>? Players => Room?.Game?.Players;
     HiddenRoom._Game._Player? LocalPlayer => Players?.FirstOrDefault(x => x.UserId == AppState.LocalId);
-    DataDefinition? FocusedItemDataDefinition;
+    RenderFragment? FocusedCard;
     Dictionary<HiddenRoom._Game._Player._Item, Dictionary<string, bool>> ItemStates = new();
     bool IsItemGifted(HiddenRoom._Game._Player._Item item) => ItemStates.TryGetValue(item, out var state) && state["gifted"];
 
@@ -110,13 +110,18 @@
     async void ShowItemDescription(int modelId) {
         // Sometimes fails...
         try {
-            FocusedItemDataDefinition = Resources.GetDataDefinitionByModelId(modelId)!;
+            FocusedCard = @<ItemCard ItemDataDefinition=Resources.GetDataDefinitionByModelId(modelId) />;
         } catch (Exception e) {
             await JS.CError(e.ToString());
         }
     }
 
     // void HideItemDescription() => FocusedItemDataDefinition = null;
+
+    void OnMouseOverCurse(string curse) {
+        FocusedCard = @<CurseCard Curse=@curse />;
+        StateHasChanged();
+    }
 
     void ProcessEvent() {
         if (ProcessingEventTask is not null || !(ProcessingEventTask?.IsCompleted ?? true)) {
@@ -181,6 +186,16 @@
                             case "debugFocusItemDefinition": {
                                 var modelId = e.Json.GetProperty("modelId").GetInt32();
                                 ShowItemDescription(modelId);
+                                StateHasChanged();
+                                continue;
+                            }
+                            case "debugAddCurse": {
+                                LocalPlayer?.Curses.Add(e.Json.GetProperty("curse").GetString()!);
+                                StateHasChanged();
+                                continue;
+                            }
+                            case "debugRemoveCurse": {
+                                LocalPlayer?.Curses.Remove(e.Json.GetProperty("curse").GetString()!);
                                 StateHasChanged();
                                 continue;
                             }

@@ -1,0 +1,42 @@
+<div class="CardContainer">
+    @if (Showing) {
+        <div class="Card">
+            <div><img id="Card@(Uuid)" /></div>
+            <span class="Element@(Element ?? "")">@Title</span>
+            <div>
+                <div>
+                    <span class="Element@(Element ?? "") @(string.IsNullOrEmpty(ShortInformation) ? "NoShortInformation" : "")">
+                        <img id="CardElement@(Uuid)">
+                        @ShortInformation
+                    </span>
+                    <span class="Element@(Element ?? "")">@((MarkupString)(Information ?? string.Empty))</span>
+                </div>
+                @if (Cost.HasValue) {
+                    <span class="Cost">@((MarkupString)L["texts.game.cost"].Replace("{{mp}}", Cost.Value.ToString()))</span>
+                } else if (Price.HasValue) {
+                    <span class="Price">@L["texts.game.price"].Replace("{{price}}", Price.Value.ToString())</span>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    string Uuid = Guid.NewGuid().ToString();
+    [Parameter] public bool Showing { get; set; } = true;
+    [Parameter] public string? Element { get; set; }
+    [Parameter] public Stream? ImageStream { get; set; }
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public string? ShortInformation { get; set; }
+    [Parameter] public string? Information { get; set; }
+    [Parameter] public int? Cost { get; set; }
+    [Parameter] public int? Price { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender) {
+        if (Showing) {
+            if (ImageStream is not null) await JS.SetImage(await JS.GetElementById($"Card{Uuid}"), new(ImageStream));
+            if (!string.IsNullOrEmpty(Element)) await JS.SetImage(await JS.GetElementById($"CardElement{Uuid}"), new(Resources.GetResource($"images/elements/{Element.ToLower()}.png")!));
+            else await JS.RemoveImage(await JS.GetElementById($"CardElement{Uuid}"));
+        }
+    }
+}

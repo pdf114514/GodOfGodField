@@ -199,6 +199,13 @@
                                 StateHasChanged();
                                 continue;
                             }
+                            case "debugSetGuardian": {
+                                if (LocalPlayer is not null) {
+                                    LocalPlayer.Guardian = e.Json.GetProperty("guardian").GetString()!;
+                                    StateHasChanged();
+                                }
+                                continue;
+                            }
                             default: {
                                 Console.WriteLine($"Unknown event: {e.EventName}");
                                 continue;

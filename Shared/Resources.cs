@@ -66,7 +66,8 @@ public static class Resources {
 
     private static List<DataDefinition> GetDataDefinitions() {
         var result = new List<DataDefinition>();
-        var i18n = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(GetResource("i18n/ja.json")!)!;
+        if (GetResource("i18n/ja.json") is var i18nData && i18nData is null) return result;
+        var i18n = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(i18nData)!;
         var items = i18n["items"];
         foreach (var item in items.EnumerateArray()) result.Add(DataDefinition.Deserialize(item));
         return result;

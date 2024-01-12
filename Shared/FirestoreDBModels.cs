@@ -60,6 +60,7 @@ public class HiddenRoom {
             public string Name { get; init; }
             public string UserId { get; init; }
             public List<string> Curses { get; init; }
+            public string Guardian { get; set; }
 
             public class _Item {
                 public int Id { get; init; }
@@ -86,6 +87,7 @@ public class HiddenRoom {
                 Name = element.GetProperty("name").GetStringValue();
                 UserId = element.GetProperty("userId").GetStringValue();
                 Curses = element.TryGetProperty("curses", out var curses) ? curses.GetArrayEnumerator().Select(x => x.GetStringValue()).ToList() : [];
+                Guardian = element.TryGetProperty("guardian", out var guardian) ? guardian.GetStringValue() : "";
             }
 
             public _Player() {
@@ -98,6 +100,7 @@ public class HiddenRoom {
                 Name = "";
                 UserId = "";
                 Curses = [];
+                Guardian = "";
             }
         }
 

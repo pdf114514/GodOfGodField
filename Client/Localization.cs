@@ -13,7 +13,7 @@ public class Localization {
 
     public void SwitchLanguage(string language) {
         Language = language;
-        if (Resources.GetResource($"i18n/{language}.json") is not Stream stream) throw new($"The language `{language}` does not exist!");
+        if (Resources.GetResource($"i18n/{language}.json") is not Stream stream) throw new($"The language `{language}` does not exist!" + (language == "ja" ? " You need to install resources on your server first." : string.Empty));
         _Localizations = Flatten(JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(stream)!);
     }
 
@@ -174,7 +174,7 @@ public class Localization {
                 _ => sundry.Ability is null ? null : this[$"texts.abilities.{sundry.Ability}"]
             };
         } else if (dataDef.IsMiracle(out var miracle)) {
-            if (miracle.Atk == 0 && miracle.Ability == EAbility.AddCurse) return null;
+            if (miracle.Atk == 0) return null;
             return miracle.Ability switch {
                 EAbility.AddCurseOnDamage => this["texts.abilities.addCurseOnDamage"].Replace("{{curse}}", this[$"texts.curseNames.{miracle.Curse}"]),
                 _ => miracle.Ability is null ? null : this[$"texts.abilities.{miracle.Ability}"]
@@ -192,6 +192,7 @@ public class Localization {
                 _ => phenomena.Ability is null ? null : this[$"texts.abilities.{phenomena.Ability}"]
             };
         } else if (dataDef.IsDevil(out var devil)) {
+            if (devil.Ability == EAbility.DealDamage) return null;
             return devil.Ability is null ? null : this[$"texts.abilities.{devil.Ability}"];
         } else if (dataDef.IsTrade(out var trade)) {
             return trade.Ability is null ? null : this[$"texts.abilities.{trade.Ability}"];

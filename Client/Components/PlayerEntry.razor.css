@@ -1,6 +1,6 @@
 .PlayerEntry {
     display: flex;
-    width: min(390px, 80%);
+    width: min(400px, 80%);
     height: min(40px, 80%);
 }
 
@@ -116,13 +116,24 @@
     visibility: hidden;
 }
 
-.PlayerEntry > img:last-child {
+.PlayerEntry > img:last-of-type {
     width: 50px;
     height: 40px;
 }
 
-.PlayerEntry > img:last-child[src=""] {
+.PlayerEntry > img:last-of-type[src=""] {
     visibility: hidden;
+}
+
+.PlayerEntry > .PlayerMiracles {
+    display: flex;
+    height: 40px;
+    flex-direction: row;
+}
+
+.PlayerEntry > .PlayerMiracles > img {
+    width: 40px;
+    height: 40px;
 }
 
 /* TODO make these better because they are out of alignment for a bit  */

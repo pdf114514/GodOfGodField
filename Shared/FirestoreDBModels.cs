@@ -65,10 +65,14 @@ public class HiddenRoom {
             public class _Item {
                 public int Id { get; init; }
                 public int ModelId { get; init; }
+                public bool? Used { get; set; }
+                public int? FakeModelId { get; set; }
 
                 public _Item(JsonElement element) {
                     Id = element.GetProperty("id").GetIntValue();
                     ModelId = element.GetProperty("modelId").GetIntValue();
+                    Used = element.TryGetProperty("used", out var used) ? used.GetBoolValue() : null;
+                    FakeModelId = element.TryGetProperty("fakeModelId", out var fakeModelId) ? fakeModelId.GetIntValue() : 0;
                 }
 
                 public _Item() {
@@ -83,7 +87,7 @@ public class HiddenRoom {
                 CP = element.TryGetProperty("cp", out var cp) ? cp.GetIntValue() : 0;
                 Id = element.GetProperty("id").GetIntValue();
                 Team = element.TryGetProperty("team", out var team) ? team.GetIntValue() : 0;
-                Items = element.GetProperty("items").GetArrayEnumerator().Select(x => x.GetMapValue().TryGetFieldsValue(out var fields) ? new _Item(fields) : new _Item()).ToList();
+                Items = element.GetProperty("items").GetArrayEnumerator().Select(x => x.GetMapValue().TryGetFields(out var fields) ? new _Item(fields) : new _Item()).ToList();
                 Name = element.GetProperty("name").GetStringValue();
                 UserId = element.GetProperty("userId").GetStringValue();
                 Curses = element.TryGetProperty("curses", out var curses) ? curses.GetArrayEnumerator().Select(x => x.GetStringValue()).ToList() : [];

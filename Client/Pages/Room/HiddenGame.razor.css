@@ -268,3 +268,20 @@ img {
         0px 0px 0px 2px rgb(85, 187, 153),
         inset 0px 0px 0px 1px rgb(238, 255, 238);
 }
+
+.ButtonToggleShowingMiracles {
+    display: block;
+    width: 250px;
+    height: 40px;
+    border-radius: 10px;
+    border: solid 2px rgb(102, 136, 136);
+    background-color: rgb(238, 238, 238);
+    color: rgb(102, 136, 136);
+    text-align: center;
+    line-height: 40px;
+    font-size: 30px;
+    font-family: sans-serif;
+    user-select: none;
+    margin-bottom: 20px;
+    cursor: pointer;
+}

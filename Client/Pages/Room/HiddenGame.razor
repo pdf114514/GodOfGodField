@@ -20,7 +20,7 @@
         </div>
         <div class="PlayerList">
             @if (Players is not null) @foreach (var player in Players) {
-                <PlayerEntry Player=player OnMouseOverCurse="OnMouseOverCurse" />
+                <PlayerEntry Player=player OnMouseOverCurse="OnMouseOverCurse" OnMouseOverGuardian="OnMouseOverGuardian" OnMouseOverMiracle="OnMouseOverMiracle" ShowingMiracles=ShowingMiracles />
             }
         </div>
     </div>
@@ -37,7 +37,10 @@
                 </div>
             }
         </div>
-        @FocusedCard
+        <div>
+            <div class="ButtonToggleShowingMiracles" @onclick="ToggleShowingMiracles">❊ @L["texts.game.usedMiracles"]</div>
+            @FocusedCard
+        </div>
     </div>
 </div>
 
@@ -51,6 +54,7 @@
 
     bool IsOpening = false;
     bool IsLocalPlayerTurn = true;
+    bool ShowingMiracles = false;
 
     static HiddenGame? _Instance;
     Task? ProcessingEventTask;
@@ -118,8 +122,24 @@
 
     // void HideItemDescription() => FocusedItemDataDefinition = null;
 
+    async void ToggleShowingMiracles() {
+        ShowingMiracles = !ShowingMiracles;
+        await JS.PlayAudio(new(Resources.GetResource("audio.click.mp3")!));
+        StateHasChanged();
+    }
+
     void OnMouseOverCurse(string curse) {
         FocusedCard = @<CurseCard Curse=@curse />;
+        StateHasChanged();
+    }
+
+    void OnMouseOverGuardian(string guardian) {
+        FocusedCard = @<GuardianCard Guardian=@guardian />;
+        StateHasChanged();
+    }
+
+    void OnMouseOverMiracle(DataDefinition miracle) {
+        FocusedCard = @<ItemCard ItemDataDefinition=@miracle />;
         StateHasChanged();
     }
 
@@ -173,7 +193,7 @@
                             case "debugAddItem": {
                                 if (Room is null) Room = new() { Game = new() };
                                 if (LocalPlayer is null) Players!.Add(new() { UserId = AppState.LocalId, Name = AppState.UserName });
-                                var item = new HiddenRoom._Game._Player._Item() { Id = LocalPlayer!.Items.Count, ModelId = e.Json.GetProperty("modelId").GetInt32() };
+                                var item = new HiddenRoom._Game._Player._Item() { Id = LocalPlayer!.Items.Count, ModelId = e.Json.GetProperty("modelId").GetInt32(), Used = e.Json.TryGetProperty("used", out var used) && used.GetBoolean() };
                                 LocalPlayer!.Items.Add(item);
                                 if (!ItemStates.TryGetValue(item, out var state)) ItemStates[item] = state = new();
                                 state["gifted"] = true;

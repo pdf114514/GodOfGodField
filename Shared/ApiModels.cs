@@ -121,7 +121,7 @@ public class UpdateGameRequest {
 
     public class _Command {
         [K("itemIds")] public required int[] ItemIds { get; init; }
-        [K("targetPlayerId")] [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public string? TargetPlayerId { get; init; }
+        [K("targetPlayerId")] [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public int? TargetPlayerId { get; init; }
         [K("hp")] [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public int? HP { get; init; }
         [K("mp")] [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public int? MP { get; init; }
         [K("cp")] [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public int? CP { get; init; }

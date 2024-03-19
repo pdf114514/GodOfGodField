@@ -1,0 +1,18 @@
+<div class="ItemContainer" data-gifted="@ItemGifted.ToString().ToLower()" data-selected="@Selected.ToString().ToLower()" data-active="@Active.ToString().ToLower()" @onmouseover="() => OnMouseOver?.Invoke(Item)" @onclick="() => OnClick?.Invoke(Item)"> <!--  @onmouseout="HideItemDescription" -->
+    <img class="ItemContainerImage" id="@($"Item{Item.Id}")">
+    @if (Active && (ShowingCP ? L.GetItemDescriptionCP(Item.ModelId) : L.GetItemDescription(Item.ModelId)) is var text && !string.IsNullOrEmpty(text)) {
+        <span class="ItemContainerDescription Element@(L.GetItemElement(Item.ModelId) ?? "")">@text</span>
+    } else {
+        <span class="ItemContainerDescription" style="visibility: hidden;" />
+    }
+</div>
+
+@code {
+    [Parameter] public required bool ItemGifted { get; set; }
+    [Parameter] public required bool Selected { get; set; }
+    [Parameter] public required bool Active { get; set; } = true;
+    [Parameter] public required bool ShowingCP { get; set; }
+    [Parameter] public required HiddenRoom._Game._Player._Item Item { get; set; }
+    [Parameter] public Action<HiddenRoom._Game._Player._Item>? OnMouseOver { get; set; }
+    [Parameter] public Action<HiddenRoom._Game._Player._Item>? OnClick { get; set; }
+}

@@ -73,5 +73,5 @@ public static class Resources {
         return result;
     }
 
-    public static DataDefinition? GetDataDefinitionByModelId(int modelId) => modelId < 0 || modelId >= DataDefinitions.Count ? null : DataDefinitions[modelId];
+    public static DataDefinition? GetDataDefinitionByModelId(int modelId) => modelId < 0 || modelId >= DataDefinitions.Count ? null : DataDefinitions[modelId - 1];
 }

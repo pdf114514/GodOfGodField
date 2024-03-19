@@ -8,33 +8,26 @@
             @if (IsOpening) {
                 <span class="Opening">@((MarkupString)L["texts.game.opening"])</span>
             }
-            @if (Debug) {
-                <div class="ActionMenuLeftSide">
-                    <PlayerName Player=@(new() { Team = 0, Name = "Player1" }) />
-                </div>
-                <div class="Arrow ToRight" />
-                <div class="ActionMenuRightSide">
-                    <PlayerName Player=@(new() { Team = 0, Name = "Player2" }) />
-                </div>
-            }
-        </div>
+            <div class="ActionMenuLeftSide">
+                <PlayerName Player=TurnPlayer />
+                <PlayerActionField Player=TurnPlayer SelectedItems=TurnPlayerSelectedItems OnClick="TurnPlayerActionFieldClick" />
+            </div>
+            <div class="Arrow" data-direction="@ArrowDirection.ToString()" />
+            <div class="ActionMenuRightSide">
+                <PlayerName Player=TargetPlayer />
+                <PlayerActionField Player=TargetPlayer SelectedItems=TargetPlayerSelectedItems OnClick="TargetPlayerActionFieldClick" />
+            </div>
+    </div>
         <div class="PlayerList">
             @if (Players is not null) @foreach (var player in Players) {
-                <PlayerEntry Player=player OnMouseOverCurse="OnMouseOverCurse" OnMouseOverGuardian="OnMouseOverGuardian" OnMouseOverMiracle="OnMouseOverMiracle" ShowingMiracles=ShowingMiracles />
+                <PlayerEntry Player=player OnMouseOverCurse="OnMouseOverCurse" OnMouseOverGuardian="OnMouseOverGuardian" OnMouseOverMiracle="OnMouseOverMiracle" OnClick="OnPlayerEntryClick" ShowingMiracles=ShowingMiracles />
             }
         </div>
     </div>
     <div class="LowerSide">
         <div class="Items">
             @if (LocalPlayer is not null) @foreach (var item in LocalPlayer.Items) {
-                <div class="ItemContainer" data-gifted="@IsItemGifted(item).ToString().ToLower()" @onmouseover="() => ShowItemDescription(item)"> <!--  @onmouseout="HideItemDescription" -->
-                    <img class="Item" id="@($"Item{item.Id}")">
-                    @if (L.GetItemDescription(item.ModelId) is var text && !string.IsNullOrEmpty(text)) {
-                        <span class="ItemDescription Element@(L.GetItemElement(item.ModelId) ?? "")">@text</span>
-                    } else {
-                        <span class="ItemDescription" style="visibility: hidden;" />
-                    }
-                </div>
+                <ItemContainer ItemGifted=IsItemGifted(item) Selected=TurnPlayerSelectedItems.Contains(item) ShowingCP=ShowingCP Item=item OnMouseOver="ShowItemDescription" OnClick="ItemClick" />
             }
         </div>
         <div>
@@ -53,8 +46,11 @@
     #endif
 
     bool IsOpening = false;
-    bool IsLocalPlayerTurn = true;
     bool ShowingMiracles = false;
+    bool ShowingCP = false;
+    int TurnPlayerId = -1;
+    int TargetPlayerId = -1;
+    char ArrowDirection = ' ';
 
     static HiddenGame? _Instance;
     Task? ProcessingEventTask;
@@ -63,11 +59,17 @@
     HiddenRoom? Room;
     List<HiddenRoom._Game._Player>? Players => Room?.Game?.Players;
     HiddenRoom._Game._Player? LocalPlayer => Players?.FirstOrDefault(x => x.UserId == AppState.LocalId);
+    HiddenRoom._Game._Player? TargetPlayer => Players?.FirstOrDefault(x => x.Id == TargetPlayerId);
+    HiddenRoom._Game._Player? TurnPlayer => Players?.FirstOrDefault(x => x.Id == TurnPlayerId);
+    bool IsLocalPlayerTurn => TurnPlayerId == LocalPlayer?.Id;
     RenderFragment? FocusedCard;
+    List<HiddenRoom._Game._Player._Item> TurnPlayerSelectedItems = new();
+    List<HiddenRoom._Game._Player._Item> TargetPlayerSelectedItems = new();
     Dictionary<HiddenRoom._Game._Player._Item, Dictionary<string, bool>> ItemStates = new();
     bool IsItemGifted(HiddenRoom._Game._Player._Item item) => ItemStates.TryGetValue(item, out var state) && state["gifted"];
 
     protected override async Task OnInitializedAsync() {
+        await JS.InvokeVoidAsync("console.clear");
         _Instance = this;
         ProcessEvent();
         await JS.SetBackgroundImage(await JS.GetElementByClassName("Content"), new(Resources.GetResource("images.screens.room.png")!));
@@ -106,9 +108,15 @@
         }
     }
 
+    int RandomNextPlayerId() {
+        var players = Players!.Where(x => x.Id != LocalPlayer!.Id).ToList();
+        return players[new Random().Next(players.Count)].Id;
+    }
+
     void ShowItemDescription(HiddenRoom._Game._Player._Item item) {
         if (!IsItemGifted(item) || !(LocalPlayer?.Items.Contains(item) ?? true)) return;
         ShowItemDescription(item.ModelId);
+        StateHasChanged();
     }
 
     async void ShowItemDescription(int modelId) {
@@ -118,6 +126,26 @@
         } catch (Exception e) {
             await JS.CError(e.ToString());
         }
+    }
+
+    async void ItemClick(HiddenRoom._Game._Player._Item item) {
+        if (!IsLocalPlayerTurn) return;
+        if (TurnPlayerSelectedItems.Contains(item)) {
+            TurnPlayerSelectedItems.Remove(item);
+            await JS.PlayAudio(new(Resources.GetResource("audio.cancel-item.mp3")!));
+        }
+        else {
+            var dataDef = Resources.GetDataDefinitionByModelId(item.ModelId)!;
+            if (IsLocalPlayerTurn && dataDef.IsPlusAtk.HasValue && dataDef.IsPlusAtk.Value && TurnPlayerSelectedItems.All(x => Resources.GetDataDefinitionByModelId(x.ModelId)!.Atk.HasValue)) {
+                TurnPlayerSelectedItems.Add(item);
+                await JS.PlayAudio(new(Resources.GetResource("audio.select-item.mp3")!));
+            } else {
+                TurnPlayerSelectedItems.Clear();
+                TurnPlayerSelectedItems.Add(item);
+                await JS.PlayAudio(new(Resources.GetResource("audio.select-item.mp3")!));
+            }
+        }
+        StateHasChanged();
     }
 
     // void HideItemDescription() => FocusedItemDataDefinition = null;
@@ -141,6 +169,41 @@
     void OnMouseOverMiracle(DataDefinition miracle) {
         FocusedCard = @<ItemCard ItemDataDefinition=@miracle />;
         StateHasChanged();
+    }
+
+    async void OnPlayerEntryClick(HiddenRoom._Game._Player player) {
+        if (IsLocalPlayerTurn) {
+            if (player.Id == TargetPlayerId) return;
+            TargetPlayerId = player.Id;
+            var targetingSelf = player.Id == LocalPlayer?.Id;
+            ArrowDirection = targetingSelf ? 'L' : 'R';
+            if (targetingSelf) TargetPlayerId = -1;
+            await JS.PlayAudio(new(Resources.GetResource("audio.target-player.mp3")!));
+            StateHasChanged();
+        }
+    }
+
+    async void TurnPlayerActionFieldClick(HiddenRoom._Game._Player player) {
+        if (IsLocalPlayerTurn) {
+            Console.WriteLine("TurnPlayerActionFieldClick");
+            if (TurnPlayerSelectedItems.Count == 0 && (TurnPlayer?.Items.Any(x => Resources.GetDataDefinitionByModelId(x.ModelId)?.IsWeapon(out _) ?? false) ?? false)) {
+                await JS.PlayAudio(new(Resources.GetResource("audio.alert.mp3")!));
+                await JS.Alert(L["texts.alerts.pray"]);
+                return;
+            }
+            await JS.PlayAudio(new(Resources.GetResource("audio.command.mp3")!));
+            await Api.UpdateGame(TurnPlayerSelectedItems.Select(x => x.Id).ToArray(), TargetPlayerId == -1 ? Resources.GetDataDefinitionByModelId(TurnPlayerSelectedItems.First().ModelId)?.IsWeapon(out _) ?? false ? RandomNextPlayerId() : null : TargetPlayerId);
+        }
+    }
+
+    async void TargetPlayerActionFieldClick(HiddenRoom._Game._Player player) {
+        if (IsLocalPlayerTurn) {
+            if (player.Id == TargetPlayerId) return;
+            TargetPlayerId = player.Id;
+            ArrowDirection = player.Id == LocalPlayer?.Id ? 'L' : 'R';
+            await JS.PlayAudio(new(Resources.GetResource("audio.target-player.mp3")!));
+            StateHasChanged();
+        }
     }
 
     void ProcessEvent() {
@@ -188,11 +251,68 @@
                                     StateHasChanged();
                                 }
                                 var playerId = e.Json.GetProperty("playerId").GetIntValue();
+                                TurnPlayerId = playerId;
+                                StateHasChanged();
+                                if (playerId == LocalPlayer?.Id) await JS.PlayAudio(new(Resources.GetResource("audio.start-turn.mp3")!));
+                                else await JS.PlayAudio(new(Resources.GetResource("audio.turn-player.mp3")!));
+                                continue;
+                            }
+                            case "useTurnItems": {
+                                var items = e.Json.GetProperty("items").GetArrayEnumerator().Select(x => new HiddenRoom._Game._Player._Item(x.GetMapFieldsValue())).ToList();
+                                TurnPlayerSelectedItems.Clear();
+                                foreach (var item in items) {
+                                    TurnPlayerSelectedItems.Add(item);
+                                    await JS.PlayAudio(new(Resources.GetResource("audio.select-item.mp3")!));
+                                    StateHasChanged();
+                                    await Task.Delay(400);
+                                }
+                                continue;
+                            }
+                            case "setTargetPlayer": {
+                                var playerId = e.Json.GetProperty("playerId").GetIntValue();
+                                TargetPlayerId = playerId;
+                                ArrowDirection = playerId == LocalPlayer?.Id ? 'L' : 'R';
+                                await JS.PlayAudio(new(Resources.GetResource("audio.target-player.mp3")!));
+                                StateHasChanged();
+                                continue;
+                            }
+                            case "dealDamage": {
+                                var damage = e.Json.GetProperty("damage").GetIntValue();
+                                continue;
+                            }
+                            case "removeCurses": {
+                                var curses = e.Json.GetProperty("curses").GetArrayEnumerator().Select(x => x.GetStringValue()!).ToList();
+                                continue;
+                            }
+                            case "boostMP": {
+                                var mp = e.Json.GetProperty("mp").GetIntValue();
+                                continue;
+                            }
+                            case "boostHP": {
+                                var hp = e.Json.GetProperty("hp").GetIntValue();
+                                continue;
+                            }
+                            case "buy": {
+                                var item = new HiddenRoom._Game._Player._Item(e.Json.GetProperty("item").GetMapFieldsValue());
+                                continue;
+                            }
+                            case "canNotBuy": {
+                                var item = new HiddenRoom._Game._Player._Item(e.Json.GetProperty("item").GetMapFieldsValue());
+                                continue;
+                            }
+                            case "miss": {
+                                var playerId = e.Json.GetProperty("playerId").GetIntValue();
+                                continue;
+                            }
+                            case "safe": {
                                 continue;
                             }
                             case "debugAddItem": {
                                 if (Room is null) Room = new() { Game = new() };
-                                if (LocalPlayer is null) Players!.Add(new() { UserId = AppState.LocalId, Name = AppState.UserName });
+                                if (LocalPlayer is null) {
+                                    Players!.Add(new() { UserId = AppState.LocalId, Name = AppState.UserName, Id = 0, HP = 99 });
+                                    Players!.Add(new() { UserId = "debug1", Name = "Debug1", Id = 1, HP = 99 });
+                                }
                                 var item = new HiddenRoom._Game._Player._Item() { Id = LocalPlayer!.Items.Count, ModelId = e.Json.GetProperty("modelId").GetInt32(), Used = e.Json.TryGetProperty("used", out var used) && used.GetBoolean() };
                                 LocalPlayer!.Items.Add(item);
                                 if (!ItemStates.TryGetValue(item, out var state)) ItemStates[item] = state = new();

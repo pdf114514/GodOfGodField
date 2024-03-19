@@ -56,6 +56,12 @@ public class Localization {
         return null;
     }
 
+    public string? GetItemDescriptionCP(int modelId) {
+        var dataDef = Resources.GetDataDefinitionByModelId(modelId);
+        if (dataDef is null) return null;
+        return dataDef.Price.HasValue ? this["texts.game.cp"].Replace("{{cp}}", dataDef.Price.ToString()) : null;
+    }
+
     public string? GetItemShortInformation(DataDefinition? dataDef) {
         if (dataDef is null) return null;
         if (dataDef.IsArmor(out var armor)) {

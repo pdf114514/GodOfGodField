@@ -1,0 +1,32 @@
+<div class="PlayerActionField">
+    <div class="PlayerActionFieldItems" @onclick="() => OnClick?.Invoke(Player)">
+        @foreach(var item in SelectedItems) {
+            <ItemCard ItemDataDefinition="@Resources.GetDataDefinitionByModelId(item.ModelId)" />
+        }
+    </div>
+    <div class="PlayerActionFieldText Element@(Element)" data-praying="@Praying.ToString().ToLower()" data-forgiving="@Forgiving.ToString().ToLower()">
+        <img id="PlayerActionFieldTextElement@(Uuid)">
+        <span>@Text</span>
+    </div>
+</div>
+
+@code {
+    string Uuid = Guid.NewGuid().ToString();
+    [Parameter] public required HiddenRoom._Game._Player Player { get; set; }
+    [Parameter] public required bool TurnPlayer { get; set; }
+    [Parameter] public Action<HiddenRoom._Game._Player>? OnClick { get; set; }
+    [Parameter] public required List<HiddenRoom._Game._Player._Item> SelectedItems { get; set; }
+    string? Element { get; set; }
+    bool Praying { get => TurnPlayer && SelectedItems.Count == 0; }
+    bool Forgiving { get => !TurnPlayer && SelectedItems.Count == 0; }
+    string? Text { get {
+        if (Praying) return L["texts.game.pray"];
+        if (Forgiving) return L["texts.game.forgive"];
+        return null;
+    } }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender) {
+        if (!string.IsNullOrEmpty(Element)) await JS.SetImage(await JS.GetElementById($"PlayerActionFieldTextElement{Uuid}"), new(Resources.GetResource($"images/elements/{Element.ToLower()}.png")!));
+        else await JS.RemoveImage(await JS.GetElementById($"PlayerActionFieldTextElement{Uuid}"));
+    }
+}

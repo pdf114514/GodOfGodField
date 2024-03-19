@@ -1,0 +1,139 @@
+.ItemContainer {
+    width: 80px;
+    height: 100px;
+    margin: 0px 1px;
+}
+
+.ItemContainerImage {
+    width: 80px;
+    height: 80px;
+}
+
+.ItemContainerDescription {
+    display: block;
+    width: 80px;
+    height: 20px;
+    text-align: center;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    background-color: rgb(221, 255, 204);
+    user-select: none;
+    font-family: sans-serif;
+    font-size: 18px;
+    font-weight: bold;
+    line-height: 24px;
+    color: rgb(79, 79, 79);
+}
+
+.ItemContainer[data-selected="true"] > .ItemContainerImage {
+    outline: solid 5px rgb(221, 255, 204);
+    outline-offset: -5px;
+}
+
+.ItemContainer[data-active="false"] {
+    cursor: default;
+}
+
+.ItemContainer[data-gifted="false"] > .ItemContainerDescription {
+    visibility: hidden;
+    transition-duration: 250ms;
+    transition-timing-function: ease-out;
+}
+
+.ItemContainer[data-gifted="false"]::before {
+    content: "";
+    width: 76px;
+    height: 36px;
+    transition-duration: 250ms;
+    transition-timing-function: ease-out;
+    transform: translate(2px, 2px);
+    padding: 2px;
+    position: absolute;
+    background-color: rgb(85, 187, 153);
+    box-shadow:
+        0px 0px 0px 2px rgb(85, 187, 153),
+        inset 0px 0px 0px 1px rgb(238, 255, 238);
+}
+
+.ItemContainer[data-gifted="false"]::after {
+    content: "";
+    width: 76px;
+    height: 36px;
+    transition-duration: 250ms;
+    transition-timing-function: ease-out;
+    transform: translate(2px, -22px) rotateX(180deg);
+    transform-origin: top;
+    padding: 2px;
+    position: absolute;
+    background-color: rgb(85, 187, 153);
+    box-shadow:
+        0px 0px 0px 2px rgb(85, 187, 153),
+        inset 0px 0px 0px 1px rgb(238, 255, 238);
+}
+
+.ItemContainer[data-gifted="true"] {
+    cursor: pointer;
+}
+
+.ItemContainer[data-gifted="true"] > .ItemContainerDescription {
+    visibility: visible;
+    transition-duration: 250ms;
+    transition-timing-function: ease-out;
+}
+
+.ItemContainer[data-gifted="true"]::before {
+    visibility: hidden;
+    content: "";
+    width: 76px;
+    height: 0px;
+    transition-duration: 250ms;
+    transition-timing-function: ease-out;
+    transform: translateX(2px);
+    padding: 2px;
+    position: absolute;
+    background-color: rgb(85, 187, 153);
+    box-shadow:
+        0px 0px 0px 2px rgb(85, 187, 153),
+        inset 0px 0px 0px 1px rgb(238, 255, 238);
+}
+
+.ItemContainer[data-gifted="true"]::after {
+    visibility: hidden;
+    content: "";
+    width: 76px;
+    height: 0px;
+    transition-duration: 250ms;
+    transition-timing-function: ease-out;
+    transform: translate(2px, -22px) rotateX(180deg);
+    transform-origin: top;
+    padding: 2px;
+    position: absolute;
+    background-color: rgb(85, 187, 153);
+    box-shadow:
+        0px 0px 0px 2px rgb(85, 187, 153),
+        inset 0px 0px 0px 1px rgb(238, 255, 238);
+}
+
+.ElementFire {
+    color: rgb(255, 102, 102) !important;
+}
+
+.ElementWater {
+    color: rgb(102, 102, 255) !important;
+}
+
+.ElementWood {
+    color: rgb(255, 153, 0) !important;
+}
+
+.ElementStone {
+    color: rgb(102, 136, 170) !important;
+}
+
+.ElementLight {
+    color: rgb(197, 197, 0) !important;
+}
+
+.ElementDarkness {
+    color: rgb(170, 85, 204) !important;
+}

@@ -83,21 +83,21 @@ img {
     border-left: 20px solid rgb(255, 102, 153);
 }
 
-.Arrow.ToRight {
+.Arrow[data-direction="R"] {
     transform: rotateY(0deg);
 }
 
-.Arrow.ToRight::before,
-.Arrow.ToRight::after {
+.Arrow[data-direction="R"]::before,
+.Arrow[data-direction="R"]::after {
     visibility: visible;
 }
 
-.Arrow.ToLeft {
+.Arrow[data-direction="L"] {
     transform: rotateY(180deg);
 }
 
-.Arrow.ToLeft::before,
-.Arrow.ToLeft::after {
+.Arrow[data-direction="L"]::before,
+.Arrow[data-direction="L"]::after {
     visibility: visible;
 }
 
@@ -160,113 +160,6 @@ img {
     flex-wrap: wrap;
     flex-direction: row;
     width: 740px;
-}
-
-.ItemContainer {
-    width: 80px;
-    height: 100px;
-    margin: 0px 1px;
-}
-
-.ItemDescription {
-    display: block;
-    width: 80px;
-    height: 20px;
-    text-align: center;
-    border-bottom-left-radius: 8px;
-    border-bottom-right-radius: 8px;
-    background-color: rgb(221, 255, 204);
-    user-select: none;
-    font-family: sans-serif;
-    font-size: 18px;
-    font-weight: bold;
-    line-height: 24px;
-    color: rgb(79, 79, 79);
-}
-
-.Item {
-    width: 80px;
-    height: 80px;
-}
-
-.ItemContainer[data-gifted="false"] > .ItemDescription {
-    visibility: hidden;
-    transition-duration: 250ms;
-    transition-timing-function: ease-out;
-}
-
-.ItemContainer[data-gifted="false"]::before {
-    content: "";
-    width: 76px;
-    height: 36px;
-    transition-duration: 250ms;
-    transition-timing-function: ease-out;
-    transform: translate(2px, 2px);
-    padding: 2px;
-    position: absolute;
-    background-color: rgb(85, 187, 153);
-    box-shadow:
-        0px 0px 0px 2px rgb(85, 187, 153),
-        inset 0px 0px 0px 1px rgb(238, 255, 238);
-}
-
-.ItemContainer[data-gifted="false"]::after {
-    content: "";
-    width: 76px;
-    height: 36px;
-    transition-duration: 250ms;
-    transition-timing-function: ease-out;
-    transform: translate(2px, -22px) rotateX(180deg);
-    transform-origin: top;
-    padding: 2px;
-    position: absolute;
-    background-color: rgb(85, 187, 153);
-    box-shadow:
-        0px 0px 0px 2px rgb(85, 187, 153),
-        inset 0px 0px 0px 1px rgb(238, 255, 238);
-}
-
-.ItemContainer[data-gifted="true"] {
-    cursor: pointer;
-}
-
-.ItemContainer[data-gifted="true"] > .ItemDescription {
-    visibility: visible;
-    transition-duration: 250ms;
-    transition-timing-function: ease-out;
-}
-
-.ItemContainer[data-gifted="true"]::before {
-    visibility: hidden;
-    content: "";
-    width: 76px;
-    height: 0px;
-    transition-duration: 250ms;
-    transition-timing-function: ease-out;
-    transform: translateX(2px);
-    padding: 2px;
-    position: absolute;
-    background-color: rgb(85, 187, 153);
-    box-shadow:
-        0px 0px 0px 2px rgb(85, 187, 153),
-        inset 0px 0px 0px 1px rgb(238, 255, 238);
-}
-
-.ItemContainer[data-gifted="true"]::after {
-    visibility: hidden;
-    content: "";
-    width: 76px;
-    height: 0px;
-    transition-duration: 250ms;
-    transition-timing-function: ease-out;
-    transform: translate(2px, -22px) rotateX(180deg);
-    transform-origin: top;
-    padding: 2px;
-    position: absolute;
-    background-color: rgb(85, 187, 153);
-    box-shadow:
-        0px 0px 0px 2px rgb(85, 187, 153),
-        inset 0px 0px 0px 1px rgb(238, 255, 238);
 }
 
 .ButtonToggleShowingMiracles {

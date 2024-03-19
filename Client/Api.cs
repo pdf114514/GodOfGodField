@@ -190,7 +190,7 @@ public class ApiClient {
         }
     }
 
-    public Task UpdateGame(int[] itemIds, string? targetPlayerId = null) => UpdateGame(new UpdateGameRequest() { Mode = "hidden", RoomId = AppState.RoomId, Command = new() { ItemIds = itemIds, TargetPlayerId = targetPlayerId } });
+    public Task UpdateGame(int[] itemIds, int? targetPlayerId = null) => UpdateGame(new UpdateGameRequest() { Mode = "hidden", RoomId = AppState.RoomId, Command = new() { ItemIds = itemIds, TargetPlayerId = targetPlayerId } });
     public async Task UpdateGame(UpdateGameRequest data) {
         using var request = new HttpRequestMessage(HttpMethod.Post, "https://asia-northeast1-godfield.cloudfunctions.net/updateGame");
         request.Headers.Authorization = new("Bearer", AppState.IdToken);

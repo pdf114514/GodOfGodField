@@ -1,4 +1,4 @@
-<div class="PlayerEntry @($"Team{Player.Team}")">
+<div class="PlayerEntry @($"Team{Player.Team}")" @onclick="() => OnClick?.Invoke(Player)">
     <div class="PlayerTeamIcon" />
     <span class="PlayerName">@Player.Name</span>
     <div class="PlayerState" style="display: @(ShowingMiracles ? "none" : "unset")">
@@ -29,6 +29,7 @@
     static readonly List<string> DiseaseKindCurses = new() { "Cold", "Fever", "Hell", "Heaven" };
     string Uuid = Guid.NewGuid().ToString();
     [Parameter] public required HiddenRoom._Game._Player Player { get; set; }
+    [Parameter] public Action<HiddenRoom._Game._Player>? OnClick { get; set; }
     [Parameter] public Action<string>? OnMouseOverCurse { get; set; }
     [Parameter] public Action<string>? OnMouseOverGuardian { get; set; }
     [Parameter] public Action<DataDefinition>? OnMouseOverMiracle { get; set; }

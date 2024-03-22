@@ -1,32 +1,68 @@
 <div class="PlayerActionField">
     <div class="PlayerActionFieldItems" @onclick="() => OnClick?.Invoke(Player)">
         @foreach(var item in SelectedItems) {
-            <ItemCard ItemDataDefinition="@Resources.GetDataDefinitionByModelId(item.ModelId)" />
+            <ItemCard ItemDataDefinition="@Resources.GetDataDefinitionByModelId(item.ModelId)" OnMouseOver="@(() => OnMouseOverItem?.Invoke(item))" />
         }
     </div>
-    <div class="PlayerActionFieldText Element@(Element)" data-praying="@Praying.ToString().ToLower()" data-forgiving="@Forgiving.ToString().ToLower()">
+    <div class="PlayerActionFieldText @(Element is null ? "" : $"Element{Element}")" data-praying="@Praying.ToString().ToLower()" data-forgiving="@Forgiving.ToString().ToLower()" data-textvisible="@TextVisible.ToString().ToLower()">
         <img id="PlayerActionFieldTextElement@(Uuid)">
         <span>@Text</span>
     </div>
+    @if (BigText is not null) @BigText
 </div>
 
 @code {
     string Uuid = Guid.NewGuid().ToString();
     [Parameter] public required HiddenRoom._Game._Player Player { get; set; }
     [Parameter] public required bool TurnPlayer { get; set; }
+    [Parameter] public required bool TextVisible { get; set; }
     [Parameter] public Action<HiddenRoom._Game._Player>? OnClick { get; set; }
+    [Parameter] public Action<HiddenRoom._Game._Player._Item>? OnMouseOverItem { get; set; }
     [Parameter] public required List<HiddenRoom._Game._Player._Item> SelectedItems { get; set; }
-    string? Element { get; set; }
+    RenderFragment? BigText { get; set; }
     bool Praying { get => TurnPlayer && SelectedItems.Count == 0; }
     bool Forgiving { get => !TurnPlayer && SelectedItems.Count == 0; }
+    string? Element { get {
+        if (SelectedItems.Count == 0) return null;
+        var elements = SelectedItems.Select(x => Resources.GetDataDefinitionByModelId(x.ModelId)?.Element).Distinct().ToList();
+        if (elements.All(x => x == EElement.Light)) return EElement.Light[0..1].ToUpper() + EElement.Light[1..];
+        if (elements.All(x => x == EElement.Darkness)) return EElement.Darkness[0..1].ToUpper() + EElement.Darkness[1..];
+        if (elements.All(x => x == EElement.Light || x == EElement.Fire)) return EElement.Fire[0..1].ToUpper() + EElement.Fire[1..];
+        if (elements.All(x => x == EElement.Light || x == EElement.Water)) return EElement.Water[0..1].ToUpper() + EElement.Water[1..];
+        if (elements.All(x => x == EElement.Light || x == EElement.Wood)) return EElement.Wood[0..1].ToUpper() + EElement.Wood[1..];
+        if (elements.All(x => x == EElement.Light || x == EElement.Stone)) return EElement.Stone[0..1].ToUpper() + EElement.Stone[1..];
+        return "";
+    } }
     string? Text { get {
         if (Praying) return L["texts.game.pray"];
         if (Forgiving) return L["texts.game.forgive"];
+        if (SelectedItems.All(x => Resources.GetDataDefinitionByModelId(x.ModelId) is var dataDef && (dataDef?.IsWeapon(out _) ?? false) || (dataDef?.IsPlusAtk ?? false))) {
+            if (Resources.GetDataDefinitionByModelId(SelectedItems.First().ModelId) is var dataDef && dataDef!.HitRate.HasValue) return L.GetItemDescription(SelectedItems.First().ModelId);
+            return L["texts.game.atk"].Replace("{{atk}}", SelectedItems.Sum(x => Resources.GetDataDefinitionByModelId(x.ModelId)?.Atk ?? 0).ToString());
+        }
+        if (SelectedItems.All(x => Resources.GetDataDefinitionByModelId(x.ModelId) is var dataDef && (dataDef?.IsArmor(out _) ?? false) || (dataDef?.IsSundry(out _) ?? false))) return L["texts.game.def"].Replace("{{def}}", SelectedItems.Sum(x => Resources.GetDataDefinitionByModelId(x.ModelId)?.Def ?? 0).ToString());
         return null;
     } }
 
     protected override async Task OnAfterRenderAsync(bool firstRender) {
         if (!string.IsNullOrEmpty(Element)) await JS.SetImage(await JS.GetElementById($"PlayerActionFieldTextElement{Uuid}"), new(Resources.GetResource($"images/elements/{Element.ToLower()}.png")!));
         else await JS.RemoveImage(await JS.GetElementById($"PlayerActionFieldTextElement{Uuid}"));
+    }
+
+    public void ClearBigText() {
+        BigText = null;
+        StateHasChanged();
+    }
+
+    public async void ShowDamageText(int damage) {
+        var playAnimation = false;
+        BigText = @<div class="BigText DamageText" data-playanimation="@playAnimation.ToString().ToLower()">
+            <span class="DamageTextValue">@damage</span>
+            <span class="DamageTextDamageString">@L["texts.effects.damage"]</span>
+        </div>;
+        StateHasChanged();
+        playAnimation = true;
+        await Task.Delay(1);
+        StateHasChanged();
     }
 }

@@ -32,6 +32,7 @@ public class HiddenRoom {
     public class _Game {
         public int DiseasePlayerId { get; init; }
         public List<_Event> Events { get; init; }
+        public bool IsOver { get; init; }
         public List<int> GiftPlayerIds { get; init; }
         public List<int> GuardianPlayerIds { get; init; }
         public List<_Player> Players { get; init; }
@@ -111,6 +112,7 @@ public class HiddenRoom {
         public _Game(JsonElement element) {
             DiseasePlayerId = element.TryGetProperty("diseasePlayerId", out var diseasePlayerId) ? diseasePlayerId.GetIntValue() : 0;
             Events = element.GetProperty("events").GetArrayEnumerator().Select(x => new _Event(x.GetMapFieldsValue())).ToList();
+            IsOver = element.TryGetProperty("isOver", out var isOver) && isOver.GetBoolValue();
             GiftPlayerIds = element.TryGetProperty("giftPlayerIds", out var giftPlayerIds) ? giftPlayerIds.GetArrayEnumerator().Select(x => x.GetIntValue()).ToList() : [];
             GuardianPlayerIds = element.TryGetProperty("guardianPlayerIds", out var guardianPlayerIds) ? guardianPlayerIds.GetArrayEnumerator().Select(x => x.GetIntValue()).ToList() : [];
             Players = element.GetProperty("players").GetArrayEnumerator().Select(x => new _Player(x.GetMapFieldsValue())).ToList();
@@ -123,6 +125,7 @@ public class HiddenRoom {
         public _Game() {
             DiseasePlayerId = 0;
             Events = [];
+            IsOver = false;
             GiftPlayerIds = [];
             GuardianPlayerIds = [];
             Players = [];

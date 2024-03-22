@@ -10,12 +10,12 @@
             }
             <div class="ActionMenuLeftSide">
                 <PlayerName Player=TurnPlayer />
-                <PlayerActionField Player=TurnPlayer SelectedItems=TurnPlayerSelectedItems OnClick="TurnPlayerActionFieldClick" />
+                <PlayerActionField Player=TurnPlayer TextVisible=true SelectedItems=TurnPlayerSelectedItems OnClick="TurnPlayerActionFieldClick" OnMouseOverItem="ShowItemDescription" @ref="ActionFieldLeftSide" />
             </div>
             <div class="Arrow" data-direction="@ArrowDirection.ToString()" />
             <div class="ActionMenuRightSide">
                 <PlayerName Player=TargetPlayer />
-                <PlayerActionField Player=TargetPlayer SelectedItems=TargetPlayerSelectedItems OnClick="TargetPlayerActionFieldClick" />
+                <PlayerActionField Player=TargetPlayer TextVisible=true SelectedItems=TargetPlayerSelectedItems OnClick="TargetPlayerActionFieldClick" OnMouseOverItem="ShowItemDescription" @ref="ActionFieldRightSide" />
             </div>
     </div>
         <div class="PlayerList">
@@ -27,7 +27,7 @@
     <div class="LowerSide">
         <div class="Items">
             @if (LocalPlayer is not null) @foreach (var item in LocalPlayer.Items) {
-                <ItemContainer ItemGifted=IsItemGifted(item) Selected=TurnPlayerSelectedItems.Contains(item) ShowingCP=ShowingCP Item=item OnMouseOver="ShowItemDescription" OnClick="ItemClick" />
+                <ItemContainer ItemGifted=IsItemGifted(item) Selected=@(Attacking ? TurnPlayerSelectedItems.Contains(item) : Defending ? TargetPlayerSelectedItems.Contains(item) : false) ShowingCP=ShowingCP Item=item OnMouseOver="ShowItemDescription" OnClick="ItemClick" />
             }
         </div>
         <div>
@@ -61,8 +61,13 @@
     HiddenRoom._Game._Player? LocalPlayer => Players?.FirstOrDefault(x => x.UserId == AppState.LocalId);
     HiddenRoom._Game._Player? TargetPlayer => Players?.FirstOrDefault(x => x.Id == TargetPlayerId);
     HiddenRoom._Game._Player? TurnPlayer => Players?.FirstOrDefault(x => x.Id == TurnPlayerId);
-    bool IsLocalPlayerTurn => TurnPlayerId == LocalPlayer?.Id;
+    bool SelectingItems = true;
+    bool Attacking => SelectingItems && TurnPlayerId == LocalPlayer?.Id;
+    bool Defending => SelectingItems && TargetPlayerId == LocalPlayer?.Id;
+    bool IsLocalPlayerTurn => Attacking || Defending;
     RenderFragment? FocusedCard;
+    PlayerActionField ActionFieldLeftSide = default!;
+    PlayerActionField ActionFieldRightSide = default!;
     List<HiddenRoom._Game._Player._Item> TurnPlayerSelectedItems = new();
     List<HiddenRoom._Game._Player._Item> TargetPlayerSelectedItems = new();
     Dictionary<HiddenRoom._Game._Player._Item, Dictionary<string, bool>> ItemStates = new();
@@ -95,13 +100,15 @@
             await JS.InvokeVoidAsync("console.dir", document.RootElement.Deserialize<object>());
             var room = new HiddenRoom(document);
             if (Room is null) Room = room;
+            else if (room?.Game?.Events.Any(x => x.EventName == "startGame") ?? false) return;
 
-            foreach (var e in room.Game!.Events) {
+            foreach (var e in room!.Game!.Events) {
                 EventQueue.Enqueue(e);
                 Console.WriteLine($"Event added: {e.EventName}");
             }
 
             Room = room;
+            ProcessEvent();
             StateHasChanged();
         } catch (Exception e) {
             await JS.CError(e.ToString());
@@ -114,7 +121,7 @@
     }
 
     void ShowItemDescription(HiddenRoom._Game._Player._Item item) {
-        if (!IsItemGifted(item) || !(LocalPlayer?.Items.Contains(item) ?? true)) return;
+        if (!IsItemGifted(item) && (LocalPlayer?.Items.Contains(item) ?? false)) return;
         ShowItemDescription(item.ModelId);
         StateHasChanged();
     }
@@ -129,20 +136,31 @@
     }
 
     async void ItemClick(HiddenRoom._Game._Player._Item item) {
-        if (!IsLocalPlayerTurn) return;
-        if (TurnPlayerSelectedItems.Contains(item)) {
-            TurnPlayerSelectedItems.Remove(item);
-            await JS.PlayAudio(new(Resources.GetResource("audio.cancel-item.mp3")!));
-        }
-        else {
-            var dataDef = Resources.GetDataDefinitionByModelId(item.ModelId)!;
-            if (IsLocalPlayerTurn && dataDef.IsPlusAtk.HasValue && dataDef.IsPlusAtk.Value && TurnPlayerSelectedItems.All(x => Resources.GetDataDefinitionByModelId(x.ModelId)!.Atk.HasValue)) {
-                TurnPlayerSelectedItems.Add(item);
-                await JS.PlayAudio(new(Resources.GetResource("audio.select-item.mp3")!));
+        if (Attacking) {
+            if (TurnPlayerSelectedItems.Contains(item)) {
+                TurnPlayerSelectedItems.Remove(item);
+                await JS.PlayAudio(new(Resources.GetResource("audio.cancel-item.mp3")!));
             } else {
-                TurnPlayerSelectedItems.Clear();
-                TurnPlayerSelectedItems.Add(item);
-                await JS.PlayAudio(new(Resources.GetResource("audio.select-item.mp3")!));
+                var dataDef = Resources.GetDataDefinitionByModelId(item.ModelId)!;
+                if (dataDef.IsPlusAtk.HasValue && dataDef.IsPlusAtk.Value && TurnPlayerSelectedItems.All(x => Resources.GetDataDefinitionByModelId(x.ModelId)!.Atk.HasValue)) {
+                    TurnPlayerSelectedItems.Add(item);
+                    await JS.PlayAudio(new(Resources.GetResource("audio.select-item.mp3")!));
+                } else {
+                    TurnPlayerSelectedItems.Clear();
+                    TurnPlayerSelectedItems.Add(item);
+                    await JS.PlayAudio(new(Resources.GetResource("audio.select-item.mp3")!));
+                }
+            }
+        } else if (Defending) {
+            if (TargetPlayerSelectedItems.Contains(item)) {
+                TargetPlayerSelectedItems.Remove(item);
+                await JS.PlayAudio(new(Resources.GetResource("audio.cancel-item.mp3")!));
+            } else {
+                var dataDef = Resources.GetDataDefinitionByModelId(item.ModelId)!;
+                if (dataDef.Def.HasValue) {
+                    TargetPlayerSelectedItems.Add(item);
+                    await JS.PlayAudio(new(Resources.GetResource("audio.select-item.mp3")!));
+                }
             }
         }
         StateHasChanged();
@@ -172,8 +190,7 @@
     }
 
     async void OnPlayerEntryClick(HiddenRoom._Game._Player player) {
-        if (IsLocalPlayerTurn) {
-            if (player.Id == TargetPlayerId) return;
+        if (Attacking) {
             TargetPlayerId = player.Id;
             var targetingSelf = player.Id == LocalPlayer?.Id;
             ArrowDirection = targetingSelf ? 'L' : 'R';
@@ -184,34 +201,42 @@
     }
 
     async void TurnPlayerActionFieldClick(HiddenRoom._Game._Player player) {
-        if (IsLocalPlayerTurn) {
-            Console.WriteLine("TurnPlayerActionFieldClick");
-            if (TurnPlayerSelectedItems.Count == 0 && (TurnPlayer?.Items.Any(x => Resources.GetDataDefinitionByModelId(x.ModelId)?.IsWeapon(out _) ?? false) ?? false)) {
-                await JS.PlayAudio(new(Resources.GetResource("audio.alert.mp3")!));
-                await JS.Alert(L["texts.alerts.pray"]);
-                return;
+        try {
+            if (Attacking) {
+                Console.WriteLine("TurnPlayerActionFieldClick");
+                if (TurnPlayerSelectedItems.Count == 0 && (TurnPlayer?.Items.Any(x => Resources.GetDataDefinitionByModelId(x.ModelId)?.IsWeapon(out _) ?? false) ?? false)) {
+                    await JS.PlayAudio(new(Resources.GetResource("audio.alert.mp3")!));
+                    await JS.Alert(L["texts.alerts.pray"]);
+                    return;
+                }
+                await JS.PlayAudio(new(Resources.GetResource("audio.command.mp3")!));
+                await Api.UpdateGame(TurnPlayerSelectedItems.Select(x => x.Id).ToArray(), TargetPlayerId == -1 ? Resources.GetDataDefinitionByModelId(TurnPlayerSelectedItems.First().ModelId)?.IsWeapon(out _) ?? false ? RandomNextPlayerId() : null : TargetPlayerId);
             }
-            await JS.PlayAudio(new(Resources.GetResource("audio.command.mp3")!));
-            await Api.UpdateGame(TurnPlayerSelectedItems.Select(x => x.Id).ToArray(), TargetPlayerId == -1 ? Resources.GetDataDefinitionByModelId(TurnPlayerSelectedItems.First().ModelId)?.IsWeapon(out _) ?? false ? RandomNextPlayerId() : null : TargetPlayerId);
+        } catch (Exception e) {
+            await JS.CError(e.ToString());
         }
     }
 
     async void TargetPlayerActionFieldClick(HiddenRoom._Game._Player player) {
-        if (IsLocalPlayerTurn) {
-            if (player.Id == TargetPlayerId) return;
-            TargetPlayerId = player.Id;
-            ArrowDirection = player.Id == LocalPlayer?.Id ? 'L' : 'R';
-            await JS.PlayAudio(new(Resources.GetResource("audio.target-player.mp3")!));
-            StateHasChanged();
+        try {
+            if (Defending) {
+                Console.WriteLine("TargetPlayerActionFieldClick");
+                await JS.PlayAudio(new(Resources.GetResource("audio.command.mp3")!));
+                await Api.UpdateGame(TargetPlayerSelectedItems.Select(x => x.Id).ToArray());
+            }
+        } catch (Exception e) {
+            await JS.CError(e.ToString());
         }
     }
 
     void ProcessEvent() {
-        if (ProcessingEventTask is not null || !(ProcessingEventTask?.IsCompleted ?? true)) {
-            Console.WriteLine($"TASK ALREADY RUNNING: {ProcessingEventTask}, {ProcessingEventTask?.IsCompleted}");
+        // if (ProcessingEventTask?.Status == TaskStatus.WaitingForActivation) {
+        //     ProcessingEventTask = null;
+        // }
+        if (ProcessingEventTask is not null || ProcessingEventTask?.Status == TaskStatus.Running) {
+            Console.WriteLine($"TASK ALREADY RUNNING: {ProcessingEventTask}, {ProcessingEventTask?.Status}");
             return;
         }
-        if (ProcessingEventTask is not null) return;
         ProcessingEventTask = Task.Run(async () => {
             Console.WriteLine("TASK STARTED");
             while (true) {
@@ -268,16 +293,32 @@
                                 }
                                 continue;
                             }
+                            case "useDefenseItems": {
+                                var items = e.Json.GetProperty("items").GetArrayEnumerator().Select(x => new HiddenRoom._Game._Player._Item(x.GetMapFieldsValue())).ToList();
+                                TargetPlayerSelectedItems.Clear();
+                                foreach (var item in items) {
+                                    TargetPlayerSelectedItems.Add(item);
+                                    await JS.PlayAudio(new(Resources.GetResource("audio.select-item.mp3")!));
+                                    StateHasChanged();
+                                    await Task.Delay(400);
+                                }
+                                continue;
+                            }
                             case "setTargetPlayer": {
                                 var playerId = e.Json.GetProperty("playerId").GetIntValue();
                                 TargetPlayerId = playerId;
-                                ArrowDirection = playerId == LocalPlayer?.Id ? 'L' : 'R';
-                                await JS.PlayAudio(new(Resources.GetResource("audio.target-player.mp3")!));
+                                ArrowDirection = TurnPlayerId == TargetPlayerId && TargetPlayerId == LocalPlayer?.Id ? 'L' : 'R';
+                                if (playerId == LocalPlayer?.Id) await JS.PlayAudio(new(Resources.GetResource("audio.start-turn.mp3")!));
+                                else await JS.PlayAudio(new(Resources.GetResource("audio.target-player.mp3")!));
                                 StateHasChanged();
                                 continue;
                             }
                             case "dealDamage": {
                                 var damage = e.Json.GetProperty("damage").GetIntValue();
+                                ActionFieldRightSide.ShowDamageText(damage);
+                                await JS.PlayAudio(new(Resources.GetResource("audio.deal-damage.mp3")!));
+                                await Task.Delay(1000);
+                                ActionFieldRightSide.ClearBigText();
                                 continue;
                             }
                             case "removeCurses": {
@@ -344,6 +385,14 @@
                                     LocalPlayer.Guardian = e.Json.GetProperty("guardian").GetString()!;
                                     StateHasChanged();
                                 }
+                                continue;
+                            }
+                            case "debugUpdateGame": {
+                                await Api.UpdateGame(e.Json.GetProperty("itemIds").Deserialize<int[]>()!, e.Json.TryGetProperty("targetPlayerId", out var targetPlayerId) ? targetPlayerId.GetInt32() : null);
+                                continue;
+                            }
+                            case "debugShowDamage": {
+                                ActionFieldRightSide.ShowDamageText(e.Json.TryGetProperty("damage", out var damage) ? damage.GetInt32() : 99);
                                 continue;
                             }
                             default: {

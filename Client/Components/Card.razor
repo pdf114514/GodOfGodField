@@ -1,4 +1,4 @@
-<div class="CardContainer">
+<div class="CardContainer" @onmouseover="() => OnMouseOver?.Invoke()">
     @if (Showing) {
         <div class="Card">
             <div><img id="Card@(Uuid)" /></div>
@@ -31,12 +31,17 @@
     [Parameter] public string? Information { get; set; }
     [Parameter] public int? Cost { get; set; }
     [Parameter] public int? Price { get; set; }
+    [Parameter] public Action? OnMouseOver { get; set; }
+    string? PreviousTitle;
+    string? PreviousElement;
 
     protected override async Task OnAfterRenderAsync(bool firstRender) {
         if (Showing) {
-            if (ImageStream is not null) await JS.SetImage(await JS.GetElementById($"Card{Uuid}"), new(ImageStream));
-            if (!string.IsNullOrEmpty(Element)) await JS.SetImage(await JS.GetElementById($"CardElement{Uuid}"), new(Resources.GetResource($"images/elements/{Element.ToLower()}.png")!));
-            else await JS.RemoveImage(await JS.GetElementById($"CardElement{Uuid}"));
+            if (ImageStream is not null && Title != PreviousTitle) await JS.SetImage(await JS.GetElementById($"Card{Uuid}"), new(ImageStream));
+            if (!string.IsNullOrEmpty(Element) && Element != PreviousElement) await JS.SetImage(await JS.GetElementById($"CardElement{Uuid}"), new(Resources.GetResource($"images/elements/{Element.ToLower()}.png")!));
+            if (string.IsNullOrEmpty(Element)) await JS.RemoveImage(await JS.GetElementById($"CardElement{Uuid}"));
+            PreviousTitle = Title;
+            PreviousElement = Element;
         }
     }
 }

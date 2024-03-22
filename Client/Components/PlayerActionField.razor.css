@@ -1,7 +1,11 @@
 .PlayerActionField {
     width: 310px;
-    min-height: 300px;
+    height: 300px;
     border-radius: 10px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     /* background-color: rgb(255, 255, 255);
     opacity: 0; */
 }
@@ -11,6 +15,7 @@
 } */
 
 .PlayerActionField > .PlayerActionFieldItems {
+    width: 100%;
     height: 100%;
 }
 
@@ -35,16 +40,142 @@
     border-radius: 10px;
 }
 
+.PlayerActionField > .PlayerActionFieldText > img {
+    width: 20px;
+    height: 20px;
+    position: relative;
+    float: left;
+    left: 10px;
+    top: 9px;
+}
+
+.PlayerActionField > .PlayerActionFieldText > span {
+    position: relative;
+    left: -10px;
+}
+
+.PlayerActionField > .PlayerActionFieldText[data-textvisible="false"] {
+    visibility: hidden;
+}
+
 .PlayerActionField > .PlayerActionFieldText[data-praying="true"] {
     background-color: rgb(0, 136, 136);
+}
+
+.PlayerActionField > .PlayerActionFieldText[data-praying="true"] > img {
+    display: none;
+}
+
+.PlayerActionField > .PlayerActionFieldText[data-praying="true"] > span {
+    position: initial;
+    left: initial;
 }
 
 .PlayerActionField > .PlayerActionFieldText[data-forgiving="true"] {
     background-color: rgb(170, 68, 68);
 }
 
+.PlayerActionField > .PlayerActionFieldText[data-forgiving="true"] > img {
+    display: none;
+}
+
+.PlayerActionField > .PlayerActionFieldText[data-forgiving="true"] > span {
+    position: initial;
+    left: initial;
+    color: rgb(238, 221, 221);
+}
+
+.PlayerActionField > .PlayerActionFieldText.Element {
+    color: rgb(79, 79, 79);
+    outline: 4px solid rgb(79, 79, 79);
+    outline-offset: -4px;
+}
+
+.PlayerActionField > .PlayerActionFieldText.Element > img {
+    display: none;
+}
+
+.PlayerActionField > .PlayerActionFieldText.Element > span {
+    position: initial;
+    left: initial;
+}
+
+.PlayerActionField > .PlayerActionFieldText.ElementFire {
+    color: rgb(255, 102, 102);
+    outline: 4px solid rgb(255, 102, 102);
+    outline-offset: -4px;
+}
+
 .PlayerActionField > .PlayerActionFieldText.ElementWater {
     color: rgb(102, 102, 255);
     outline: 4px solid rgb(102, 102, 255);
     outline-offset: -4px;
+}
+
+.PlayerActionField > .PlayerActionFieldText.ElementWood {
+    color: rgb(255, 153, 0);
+    outline: 4px solid rgb(255, 153, 0);
+    outline-offset: -4px;
+}
+
+.PlayerActionField > .PlayerActionFieldText.ElementStone {
+    color: rgb(102, 136, 170);
+    outline: 4px solid rgb(102, 136, 170);
+    outline-offset: -4px;
+}
+
+.PlayerActionField > .PlayerActionFieldText.ElementLight {
+    color: rgb(197, 197, 0);
+    outline: 4px solid rgb(197, 197, 0);
+    outline-offset: -4px;
+}
+
+.PlayerActionField > .PlayerActionFieldText.ElementDarkness {
+    color: rgb(170, 85, 204);
+    outline: 4px solid rgb(170, 85, 204);
+    outline-offset: -4px;
+}
+
+.BigText {
+    width: 280px;
+    height: 150px;
+    border-radius: 25px;
+}
+
+.BigText.DamageText {
+    background-color: rgb(79, 79, 79);
+    transition-property: top;
+    transition-duration: 150ms;
+    transition-timing-function: ease-out;
+    top: -250px;
+    overflow: hidden;
+    position: absolute;
+    text-align: center;
+}
+
+.BigText.DamageText[data-playanimation="true"] {
+    top: 100px;
+}
+
+.BigText.DamageText > .DamageTextValue {
+    line-height: 120px;
+    font-family: sans-serif;
+    font-size: 100px;
+    font-weight: bold;
+    text-shadow: rgb(238, 238, 238) -1px -1px, rgb(238, 238, 238) -1px 0px, rgb(238, 238, 238) -1px 1px, rgb(238, 238, 238) 0px -1px, rgb(238, 238, 238) 0px 1px, rgb(238, 238, 238) 1px -1px, rgb(238, 238, 238) 1px 0px, rgb(238, 238, 238) 1px 1px;
+    color: rgb(170, 0, 0);
+    display: block;
+}
+
+.BigText.DamageText > .DamageTextDamageString {
+    line-height: 50px;
+    font-family: sans-serif;
+    font-size: 32px;
+    font-weight: bold;
+    text-shadow: rgb(238, 238, 238) -1px -1px, rgb(238, 238, 238) -1px 0px, rgb(238, 238, 238) -1px 1px, rgb(238, 238, 238) 0px -1px, rgb(238, 238, 238) 0px 1px, rgb(238, 238, 238) 1px -1px, rgb(238, 238, 238) 1px 0px, rgb(238, 238, 238) 1px 1px;
+    color: rgb(170, 0, 0);
+    float: right;
+    position: relative;
+    top: -20px;
+    left: -20px;
 }

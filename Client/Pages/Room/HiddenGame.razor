@@ -327,10 +327,29 @@
                             }
                             case "boostMP": {
                                 var mp = e.Json.GetProperty("mp").GetIntValue();
+                                ActionFieldRightSide.ShowMPText(mp);
+                                await JS.PlayAudio(new(Resources.GetResource("audio.boost-mp.mp3")!));
+                                await Task.Delay(1200);
+                                ActionFieldRightSide.ClearBigText();
+                                await Task.Delay(300);
                                 continue;
                             }
                             case "boostHP": {
                                 var hp = e.Json.GetProperty("hp").GetIntValue();
+                                ActionFieldRightSide.ShowHPText(hp);
+                                await JS.PlayAudio(new(Resources.GetResource("audio.boost-hp.mp3")!));
+                                await Task.Delay(1200);
+                                ActionFieldRightSide.ClearBigText();
+                                await Task.Delay(300);
+                                continue;
+                            }
+                            case "boostCP": {
+                                var cp = e.Json.GetProperty("cp").GetIntValue();
+                                ActionFieldRightSide.ShowCPText(cp);
+                                await JS.PlayAudio(new(Resources.GetResource("audio.boost-cp.mp3")!));
+                                await Task.Delay(1200);
+                                ActionFieldRightSide.ClearBigText();
+                                await Task.Delay(300);
                                 continue;
                             }
                             case "buy": {
@@ -346,6 +365,11 @@
                                 continue;
                             }
                             case "safe": {
+                                ActionFieldRightSide.ShowSafeText();
+                                await JS.PlayAudio(new(Resources.GetResource("audio.safe.mp3")!));
+                                await Task.Delay(1200);
+                                ActionFieldRightSide.ClearBigText();
+                                await Task.Delay(300);
                                 continue;
                             }
                             case "debugAddItem": {
@@ -393,6 +417,14 @@
                             }
                             case "debugShowDamage": {
                                 ActionFieldRightSide.ShowDamageText(e.Json.TryGetProperty("damage", out var damage) ? damage.GetInt32() : 99);
+                                continue;
+                            }
+                            case "debugShowMP": {
+                                ActionFieldRightSide.ShowMPText(e.Json.TryGetProperty("mp", out var mp) ? mp.GetInt32() : 99);
+                                continue;
+                            }
+                            case "debugShowHP": {
+                                ActionFieldRightSide.ShowHPText(e.Json.TryGetProperty("hp", out var hp) ? hp.GetInt32() : 99);
                                 continue;
                             }
                             default: {

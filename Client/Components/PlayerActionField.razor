@@ -61,8 +61,52 @@
             <span class="DamageTextDamageString">@L["texts.effects.damage"]</span>
         </div>;
         StateHasChanged();
-        playAnimation = true;
         await Task.Delay(1);
+        playAnimation = true;
+        StateHasChanged();
+    }
+
+    public async void ShowMPText(int mp) {
+        var playAnimation = false;
+        BigText = @<div class="BigText MPText" data-playanimation="@playAnimation.ToString().ToLower()">
+            <span class="MPTextString">@(L["texts.effects.mp"].Replace("{{mp}}", mp.ToString()))</span>
+        </div>;
+        StateHasChanged();
+        await Task.Delay(1);
+        playAnimation = true;
+        StateHasChanged();
+    }
+
+    public async void ShowHPText(int hp) {
+        var playAnimation = false;
+        BigText = @<div class="BigText HPText" data-playanimation="@playAnimation.ToString().ToLower()">
+            <span class="HPTextString">@(L["texts.effects.hp"].Replace("{{hp}}", hp.ToString()))</span>
+        </div>;
+        StateHasChanged();
+        await Task.Delay(1);
+        playAnimation = true;
+        StateHasChanged();
+    }
+
+    public async void ShowCPText(int cp) {
+        var playAnimation = false;
+        BigText = @<div class="BigText CPText" data-playanimation="@playAnimation.ToString().ToLower()">
+            <span class="CPTextString">@(L["texts.effects.cp"].Replace("{{cp}}", cp.ToString()))</span>
+        </div>;
+        StateHasChanged();
+        await Task.Delay(1);
+        playAnimation = true;
+        StateHasChanged();
+    }
+
+    public async void ShowSafeText() {
+        var playAnimation = false;
+        BigText = @<div class="BigText SafeText" data-playanimation="@playAnimation.ToString().ToLower()">
+            <span class="SafeTextString">@L["texts.effects.safe"]</span>
+        </div>;
+        StateHasChanged();
+        await Task.Delay(1);
+        playAnimation = true;
         StateHasChanged();
     }
 }

@@ -3,8 +3,8 @@ using Microsoft.JSInterop;
 namespace GodOfGodField.Client;
 
 public class HTMLCanvasElement(IJSInProcessObjectReference elementRef) : HTMLElement(elementRef) {
-    public int Height { get => ElementRef.GetProperty<int>("height"); }
-    public int Width { get => ElementRef.GetProperty<int>("width"); }
+    public int Height { get => ElementRef.GetProperty<int>("height"); set => ElementRef.SetProperty("height", value);}
+    public int Width { get => ElementRef.GetProperty<int>("width"); set => ElementRef.SetProperty("width", value);}
 
     public CanvasRenderingContext2D GetContext2D() => new(ElementRef.Invoke<IJSInProcessObjectReference>("getContext", "2d"));
     public CanvasRenderingContext2D GetContext2D(object options) => new(ElementRef.Invoke<IJSInProcessObjectReference>("getContext", "2d", options));

@@ -110,6 +110,7 @@ function main() {
         await DotNet.invokeMethodAsync("GodOfGodField.Client", "SelectionChange");
     });
     const canvas = document.getElementById("Game");
+    let now = performance.now();
     let windowResized = true;
     window.addEventListener("resize", () => windowResized = true);
     const adjustCanvasSize = () => {
@@ -122,19 +123,24 @@ function main() {
             let height = document.documentElement.clientHeight;
             canvas.width = width * scale;
             canvas.height = height * scale;
-            canvas.style.width = width + "px";
-            canvas.style.height = height + "px";
+            // canvas.style.width = width + "px";
+            // canvas.style.height = height + "px";
+            canvas.style.width = "100%";
+            canvas.style.height = "100%";
         }
     };
     const animate = async time => {
         const resized = windowResized;
+        const dt = time - now;
+        now = time;
         adjustCanvasSize();
         try {
-            await DotNet.invokeMethodAsync("GodOfGodField.Client", "Render", time, resized);
+            await DotNet.invokeMethodAsync("GodOfGodField.Client", "Render", time, resized, dt, 1000 / dt);
         } catch (e) {
             console.error(e);
             alert(e);
         }
+        // setTimeout(() => requestAnimationFrame(animate), 1);
         requestAnimationFrame(animate);
     };
     requestAnimationFrame(animate);

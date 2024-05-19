@@ -5,7 +5,7 @@ namespace GodOfGodField.Shared;
 public static class Resources {
     public static Stream? GetResource(string path) {
         var assembly = typeof(Resources).Assembly;
-        return assembly.GetManifestResourceStream($"{assembly.GetName().Name}.Resources.{path.Replace('/', '.')}");
+        return assembly.GetManifestResourceStream(path.StartsWith($"{assembly.GetName().Name}.Resources.") ? path : $"{assembly.GetName().Name}.Resources.{path.Replace('/', '.')}");
     }
 
     public static async Task UpdateResources() {

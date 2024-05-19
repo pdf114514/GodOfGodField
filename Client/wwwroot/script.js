@@ -1,3 +1,21 @@
+// defining these functions causes error asf
+// Object.prototype.getProperty = k => this[k];
+// Object.prototype.setProperty = (k, v) => this[k] = v;
+
+Object.defineProperty(Object.prototype, "getProperty", {
+    value: function(key) { return this[key]; },
+    writable: true,
+    configurable: true,
+    enumerable: false
+});
+Object.defineProperty(Object.prototype, "setProperty", {
+    value: function(key, value) { this[key] = value; },
+    writable: true,
+    configurable: true,
+    enumerable: false
+});
+
+
 HTMLCollection.prototype.at = function(index) { return this[index]; }
 
 async function SetImage(elementRef, stream) {
@@ -6,6 +24,26 @@ async function SetImage(elementRef, stream) {
     const url = URL.createObjectURL(blob);
     elementRef.onload = () => URL.revokeObjectURL(url);
     elementRef.src = url;
+}
+
+async function CreateObjectURL(stream) {
+    const arrayBuffer = await stream.arrayBuffer();
+    const blob = new Blob([arrayBuffer]);
+    return URL.createObjectURL(blob);
+}
+
+async function CreateImageFromURL(url) {
+    // wait for the image to load
+    return await new Promise((resolve, reject) => {
+        const image = new Image();
+        image.onload = () => resolve(image);
+        image.onerror = reject;
+        image.src = url;
+    });
+}
+
+function RevokeObjectURL(url) {
+    URL.revokeObjectURL(url);
 }
 
 function RemoveImage(elementRef) {
@@ -64,4 +102,40 @@ function EnqueueEvent(eventName, eventArgs = {}) {
         ...eventArgs
     };
     return DotNet.invokeMethodAsync("GodOfGodField.Client", "EnqueueEvent", JSON.stringify(data));
+}
+
+// add fps control
+function main() {
+    document.addEventListener("selectionchange", async () => {
+        await DotNet.invokeMethodAsync("GodOfGodField.Client", "SelectionChange");
+    });
+    const canvas = document.getElementById("Game");
+    let windowResized = true;
+    window.addEventListener("resize", () => windowResized = true);
+    const adjustCanvasSize = () => {
+        if (windowResized) {
+            windowResized = false;
+            let scale = window.devicePixelRatio || 1;
+            // let width = window.innerWidth;
+            // let height = window.innerHeight;
+            let width = document.documentElement.clientWidth;
+            let height = document.documentElement.clientHeight;
+            canvas.width = width * scale;
+            canvas.height = height * scale;
+            canvas.style.width = width + "px";
+            canvas.style.height = height + "px";
+        }
+    };
+    const animate = async time => {
+        const resized = windowResized;
+        adjustCanvasSize();
+        try {
+            await DotNet.invokeMethodAsync("GodOfGodField.Client", "Render", time, resized);
+        } catch (e) {
+            console.error(e);
+            alert(e);
+        }
+        requestAnimationFrame(animate);
+    };
+    requestAnimationFrame(animate);
 }

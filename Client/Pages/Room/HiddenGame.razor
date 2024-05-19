@@ -152,12 +152,15 @@
                 }
             }
         } else if (Defending) {
+            var oneItemAbilities = new[] {
+                EAbility.BlockMiracle,
+            };
             if (TargetPlayerSelectedItems.Contains(item)) {
                 TargetPlayerSelectedItems.Remove(item);
                 await JS.PlayAudio(new(Resources.GetResource("audio.cancel-item.mp3")!));
             } else {
                 var dataDef = Resources.GetDataDefinitionByModelId(item.ModelId)!;
-                if (dataDef.Def.HasValue) {
+                if (dataDef.Def.HasValue || dataDef.IsArmor(out _)) {
                     TargetPlayerSelectedItems.Add(item);
                     await JS.PlayAudio(new(Resources.GetResource("audio.select-item.mp3")!));
                 }
@@ -275,6 +278,8 @@
                                     IsOpening = false;
                                     StateHasChanged();
                                 }
+                                TurnPlayerSelectedItems.Clear();
+                                TargetPlayerSelectedItems.Clear();
                                 var playerId = e.Json.GetProperty("playerId").GetIntValue();
                                 TurnPlayerId = playerId;
                                 StateHasChanged();
@@ -283,6 +288,7 @@
                                 continue;
                             }
                             case "useTurnItems": {
+                                TurnPlayerSelectedItems.Clear();
                                 var items = e.Json.GetProperty("items").GetArrayEnumerator().Select(x => new HiddenRoom._Game._Player._Item(x.GetMapFieldsValue())).ToList();
                                 TurnPlayerSelectedItems.Clear();
                                 foreach (var item in items) {
@@ -294,6 +300,7 @@
                                 continue;
                             }
                             case "useDefenseItems": {
+                                TargetPlayerSelectedItems.Clear();
                                 var items = e.Json.GetProperty("items").GetArrayEnumerator().Select(x => new HiddenRoom._Game._Player._Item(x.GetMapFieldsValue())).ToList();
                                 TargetPlayerSelectedItems.Clear();
                                 foreach (var item in items) {

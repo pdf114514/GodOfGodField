@@ -33,6 +33,7 @@ public class FirestoreDB {
             await ListenChannel();
         };
         Channel.OnClose += onCloseCallback;
+        Channel.AIDIncrement += () => AndroidId++;
     }
 
     public async Task<ListeningChannel> GetChannel() {
@@ -57,7 +58,7 @@ public class FirestoreDB {
         query["RID"] = "rpc";
         query["SID"] = Session.SessionId;
         query["CI"] = "0"; // case insensitive
-        query["AID"] = AndroidId++.ToString();
+        query["AID"] = AndroidId.ToString();
         query["TYPE"] = "xmlhttp";
         query["zx"] = GenerateZX();
         query["t"] = "1";
@@ -128,7 +129,7 @@ public class FirestoreDB {
         query["gsessionid"] = Session.GSessionId;
         query["SID"] = Session.SessionId;
         query["RID"] = RNG.Next(10000, 60001).ToString();
-        query["AID"] = AndroidId++.ToString();
+        query["AID"] = AndroidId.ToString();
         query["zx"] = GenerateZX();
         query["t"] = "1";
         uriBuilder.Query = query.ToString();
@@ -207,7 +208,7 @@ public class FirestoreDB {
         query["gsessionid"] = Session.GSessionId;
         query["SID"] = Session.SessionId;
         query["RID"] = RNG.Next(10000, 60001).ToString();
-        query["AID"] = AndroidId++.ToString();
+        query["AID"] = AndroidId.ToString();
         query["zx"] = GenerateZX();
         query["t"] = "1";
         uriBuilder.Query = query.ToString();
@@ -245,13 +246,14 @@ public class FirestoreDB {
 
         public event Action? OnClose;
         public event Action<JsonDocument> OnObjectReceived;
+        internal event Action? AIDIncrement;
 
         public ListeningChannel() {
             OnObjectReceived += ObjectReceived;
         }
 
         public void ReadResponse(HttpResponseMessage response) {
-            if (ReadingTask is not null && !ReadingTask.IsCompleted) ReadingTask.Wait();
+            if (ReadingTask is not null && ReadingTask.Status != TaskStatus.Running) return;
             ReadingTask = Read(response);
         }
 
@@ -267,6 +269,7 @@ public class FirestoreDB {
                 c += s - l;
                 sb.Append(line);
                 if (l != 0 && c == 0) {
+                    AIDIncrement?.Invoke();
                     var r = sb.ToString();
                     sb.Clear();
                     var x = r[r.IndexOf('[')..(r.LastIndexOf(']') + 1)];

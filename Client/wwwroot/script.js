@@ -140,8 +140,8 @@ function main() {
             console.error(e);
             alert(e);
         }
-        // setTimeout(() => requestAnimationFrame(animate), 1);
-        requestAnimationFrame(animate);
+        setTimeout(() => requestAnimationFrame(animate), 1);
+        // requestAnimationFrame(animate);
     };
     requestAnimationFrame(animate);
 }

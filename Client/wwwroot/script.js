@@ -1,3 +1,16 @@
+Object.defineProperty(Object.prototype, "getProperty", {
+    value: function(key) { return this[key]; },
+    writable: true,
+    configurable: true,
+    enumerable: false
+});
+Object.defineProperty(Object.prototype, "setProperty", {
+    value: function(key, value) { this[key] = value; },
+    writable: true,
+    configurable: true,
+    enumerable: false
+});
+
 HTMLCollection.prototype.at = function(index) { return this[index]; }
 
 async function SetImage(elementRef, stream) {

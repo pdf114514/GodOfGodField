@@ -37,9 +37,9 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender) {
         if (Showing) {
-            if (ImageStream is not null && Title != PreviousTitle) await JS.SetImage(await JS.GetElementById($"Card{Uuid}"), new(ImageStream));
-            if (!string.IsNullOrEmpty(Element) && Element != PreviousElement) await JS.SetImage(await JS.GetElementById($"CardElement{Uuid}"), new(Resources.GetResource($"images/elements/{Element.ToLower()}.png")!));
-            if (string.IsNullOrEmpty(Element)) await JS.RemoveImage(await JS.GetElementById($"CardElement{Uuid}"));
+            if (ImageStream is not null && Title != PreviousTitle) await JS.SetImage(JS.GetElementById($"Card{Uuid}"), new(ImageStream));
+            if (!string.IsNullOrEmpty(Element) && Element != PreviousElement) await JS.SetImage(JS.GetElementById($"CardElement{Uuid}"), new(Resources.GetResource($"images/elements/{Element.ToLower()}.png")!));
+            if (string.IsNullOrEmpty(Element)) await JS.RemoveImage(JS.GetElementById($"CardElement{Uuid}"));
             PreviousTitle = Title;
             PreviousElement = Element;
         }

@@ -267,7 +267,7 @@
                                 state["gifted"] = true;
                                 StateHasChanged();
                                 var dataDef = Resources.GetDataDefinitionByModelId(item.ModelId)!;
-                                await JS.SetImage(await JS.GetElementById($"Item{item.Id}"), new(dataDef.GetImageStream()));
+                                await JS.SetImage(JS.GetElementById($"Item{item.Id}"), new(dataDef.GetImageStream()));
                                 await JS.PlayAudio(new(Resources.GetResource("audio.gift.mp3")!));
                                 await Task.Delay(240);
                                 // Console.WriteLine($"Gifted item: {eItem.Id}, {dataDef.Name}, {GetTextUnderItem(item.ModelId)}");
@@ -391,7 +391,7 @@
                                 state["gifted"] = true;
                                 StateHasChanged();
                                 var dataDef = Resources.GetDataDefinitionByModelId(item.ModelId)!;
-                                await JS.SetImage(await JS.GetElementById($"Item{item.Id}"), new(dataDef.GetImageStream()));
+                                await JS.SetImage(JS.GetElementById($"Item{item.Id}"), new(dataDef.GetImageStream()));
                                 await JS.PlayAudio(new(Resources.GetResource("audio.gift.mp3")!));
                                 continue;
                             }

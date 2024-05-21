@@ -45,8 +45,8 @@
     } }
 
     protected override async Task OnAfterRenderAsync(bool firstRender) {
-        if (!string.IsNullOrEmpty(Element)) await JS.SetImage(await JS.GetElementById($"PlayerActionFieldTextElement{Uuid}"), new(Resources.GetResource($"images/elements/{Element.ToLower()}.png")!));
-        else await JS.RemoveImage(await JS.GetElementById($"PlayerActionFieldTextElement{Uuid}"));
+        if (!string.IsNullOrEmpty(Element)) await JS.SetImage(JS.GetElementById($"PlayerActionFieldTextElement{Uuid}"), new(Resources.GetResource($"images/elements/{Element.ToLower()}.png")!));
+        else await JS.RemoveImage(JS.GetElementById($"PlayerActionFieldTextElement{Uuid}"));
     }
 
     public void ClearBigText() {

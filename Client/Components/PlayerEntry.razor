@@ -37,16 +37,16 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender) {
         foreach (var cursekv in ECurse.ToDictionary()) {
-            if (!Player.Curses.Contains(cursekv.Value) && !IsDiseaseKind(cursekv.Key)) await JS.RemoveImage(await JS.GetElementById($"PlayerCurse{Uuid}{cursekv.Key}"));
+            if (!Player.Curses.Contains(cursekv.Value) && !IsDiseaseKind(cursekv.Key)) await JS.RemoveImage(JS.GetElementById($"PlayerCurse{Uuid}{cursekv.Key}"));
         }
-        if (!Player.Curses.Any(x => IsDiseaseKind(x))) await JS.RemoveImage(await JS.GetElementById($"PlayerCurse{Uuid}Disease"));
-        if (string.IsNullOrEmpty(Player.Guardian)) await JS.RemoveImage(await JS.GetElementById($"PlayerGuardian{Uuid}"));
-        else await JS.SetImage(await JS.GetElementById($"PlayerGuardian{Uuid}"), new(Resources.GetResource($"images/guardians/small/{Player.Guardian}.png")!));
+        if (!Player.Curses.Any(x => IsDiseaseKind(x))) await JS.RemoveImage(JS.GetElementById($"PlayerCurse{Uuid}Disease"));
+        if (string.IsNullOrEmpty(Player.Guardian)) await JS.RemoveImage(JS.GetElementById($"PlayerGuardian{Uuid}"));
+        else await JS.SetImage(JS.GetElementById($"PlayerGuardian{Uuid}"), new(Resources.GetResource($"images/guardians/small/{Player.Guardian}.png")!));
         foreach (var curse in Player.Curses) {
-            await JS.SetImage(await JS.GetElementById($"PlayerCurse{Uuid}{(IsDiseaseKind(curse) ? "Disease" : ECurse.ToDictionary().First(x => x.Value == curse).Key)}"), new(Resources.GetResource($"images/curses/small/{curse}.png")!));
+            await JS.SetImage(JS.GetElementById($"PlayerCurse{Uuid}{(IsDiseaseKind(curse) ? "Disease" : ECurse.ToDictionary().First(x => x.Value == curse).Key)}"), new(Resources.GetResource($"images/curses/small/{curse}.png")!));
         }
         foreach (var item in Player.Items.Where(x => x.Used.HasValue ? x.Used.Value : false)) {
-            await JS.SetImage(await JS.GetElementById($"PlayerMiracle{Uuid}.{item.Id}"), new(Resources.GetDataDefinitionByModelId(item.ModelId)!.GetImageStream()));
+            await JS.SetImage(JS.GetElementById($"PlayerMiracle{Uuid}.{item.Id}"), new(Resources.GetDataDefinitionByModelId(item.ModelId)!.GetImageStream()));
         }
     }
 

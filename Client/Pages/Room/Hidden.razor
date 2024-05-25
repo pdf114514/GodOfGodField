@@ -41,7 +41,7 @@
     HiddenRoom? Room;
 
     protected override async Task OnInitializedAsync() {
-        await JS.SetBackgroundImage(await JS.GetElementByClassName("Content"), new(Resources.GetResource("images.screens.room.png")!));
+        await JS.SetBackgroundImage(JS.GetElementByClassName("Content"), new(Resources.GetResource("images.screens.room.png")!));
         try {
             AppState.RoomId = await Api.CreateRoom();
             await Api.AddRoomUser(new() { RoomId = AppState.RoomId, UserName = AppState.UserName });

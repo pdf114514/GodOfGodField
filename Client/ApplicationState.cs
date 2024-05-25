@@ -5,46 +5,20 @@ using Microsoft.JSInterop;
 
 namespace GodOfGodField.Client;
 
-public class ApplicationState {
-    private readonly IJSRuntime JS;
-    private readonly NavigationManager Navigation;
+public class ApplicationState(IJSInProcessRuntime js, NavigationManager navigation) {
+    public bool IsLoginScreen => navigation.Uri == navigation.BaseUri;
+    public bool IsPlaying => navigation.Uri.EndsWith("/game");
 
-    public bool IsLoginScreen => Navigation.Uri == Navigation.BaseUri;
-    public bool IsPlaying => Navigation.Uri.EndsWith("/game");
+    public string UserName { get => js.LSGetItem(nameof(UserName)) ?? string.Empty; set => js.LSSetItem(nameof(UserName), value); }
+    public string RoomPassword { get => js.LSGetItem(nameof(RoomPassword)) ?? string.Empty; set => js.LSSetItem(nameof(RoomPassword), value); }
 
-    public string UserName { get; set; } = string.Empty;
-    public string RoomPassword { get; set; } = string.Empty;
-
-    public string IdToken { get; set; } = string.Empty;
-    public string LocalId { get; set; } = string.Empty;
-    public int ExpiresIn { get; set; } = -1;
-    public string RefreshToken { get; set; } = string.Empty;
+    public string IdToken { get => js.LSGetItem(nameof(IdToken)) ?? string.Empty; set => js.LSSetItem(nameof(IdToken), value); }
+    public string LocalId { get => js.LSGetItem(nameof(LocalId)) ?? string.Empty; set => js.LSSetItem(nameof(LocalId), value); }
+    public int ExpiresIn { get => int.Parse(js.LSGetItem(nameof(ExpiresIn)) ?? "-1"); set => js.LSSetItem(nameof(ExpiresIn), value.ToString()); }
+    public string RefreshToken { get => js.LSGetItem(nameof(RefreshToken)) ?? string.Empty; set => js.LSSetItem(nameof(RefreshToken), value); }
 
     public GFSession Session { get; set; } = new() { GSessionId = string.Empty, SessionId = string.Empty };
     public string RoomId { get; set; } = string.Empty;
 
     public JsonDocument? HiddenRoomDocument { get; set; }
-
-    public ApplicationState(IJSRuntime js, NavigationManager navigation) {
-        JS = js;
-        Navigation = navigation;
-    }
-
-    public async Task Load() {
-        UserName = await JS.LSGetItem("UserName") ?? string.Empty;
-        RoomPassword = await JS.LSGetItem("RoomPassword") ?? string.Empty;
-        IdToken = await JS.LSGetItem("IdToken") ?? string.Empty;
-        LocalId = await JS.LSGetItem("LocalId") ?? string.Empty;
-        ExpiresIn = int.Parse(await JS.LSGetItem("ExpiresIn") ?? "-1");
-        RefreshToken = await JS.LSGetItem("RefreshToken") ?? string.Empty;
-    }
-
-    public async Task Save() {
-        await JS.LSSetItem("UserName", UserName);
-        await JS.LSSetItem("RoomPassword", RoomPassword);
-        await JS.LSSetItem("IdToken", IdToken);
-        await JS.LSSetItem("LocalId", LocalId);
-        await JS.LSSetItem("ExpiresIn", ExpiresIn.ToString());
-        await JS.LSSetItem("RefreshToken", RefreshToken);
-    }
 }

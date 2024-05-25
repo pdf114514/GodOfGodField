@@ -25,6 +25,9 @@ public static class IJSRuntimeExtension {
 public static class IJSInProcessRuntimeExtension {
     public static IJSInProcessObjectReference GetElementById(this IJSInProcessRuntime jsRuntime, string id) => jsRuntime.Invoke<IJSInProcessObjectReference>("document.getElementById", id);
     public static IJSInProcessObjectReference GetElementByClassName(this IJSInProcessRuntime jsRuntime, string className) => jsRuntime.Invoke<IJSInProcessObjectReference>("document.getElementsByClassName", className).Invoke<IJSInProcessObjectReference>("at", 0);
+    public static string? LSGetItem(this IJSInProcessRuntime jsRuntime, string key) => jsRuntime.Invoke<string>("localStorage.getItem", key);
+    public static void LSSetItem(this IJSInProcessRuntime jsRuntime, string key, string value) => jsRuntime.InvokeVoid("localStorage.setItem", key, value);
+    public static void LSRemoveItem(this IJSInProcessRuntime jsRuntime, string key) => jsRuntime.InvokeVoid("localStorage.removeItem", key);
 }
 
 public static class IJSObjectReferenceExtension {

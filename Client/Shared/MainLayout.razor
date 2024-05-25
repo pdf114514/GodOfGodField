@@ -22,7 +22,6 @@
     bool ShowingReference = false;
 
     protected override async Task OnInitializedAsync() {
-        await AppState.Load();
         #if DEBUG
         return;
         #endif

@@ -52,7 +52,6 @@ public class ApiClient {
         AppState.RefreshToken = refresh.RefreshToken;
         AppState.ExpiresIn = int.Parse(refresh.ExpiresIn);
         AppState.LocalId = refresh.UserId;
-        await AppState.Save();
         LastRefresh = DateTime.Now;
     }
 
@@ -67,7 +66,7 @@ public class ApiClient {
         return (await response.Content.ReadFromJsonAsync<GFSession>())!;
     }
 
-    public async Task<UserCount> GetUserCount() {
+public async Task<UserCount> GetUserCount() {akimotii
         // This is not working
         // var x = await (await GetFirestore()).Collection("userCount").Document("data").GetSnapshotAsync();
         // return new() {

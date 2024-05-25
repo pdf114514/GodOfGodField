@@ -77,7 +77,7 @@
         await JS.InvokeVoidAsync("console.clear");
         _Instance = this;
         ProcessEvent();
-        await JS.SetBackgroundImage(await JS.GetElementByClassName("Content"), new(Resources.GetResource("images.screens.room.png")!));
+        await JS.SetBackgroundImage(JS.GetElementByClassName("Content"), new(Resources.GetResource("images.screens.room.png")!));
         if (Debug) {
             return;
         }

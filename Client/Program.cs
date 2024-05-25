@@ -15,7 +15,7 @@ public class Program {
         builder.Services.AddScoped(sp => (IJSInProcessRuntime)sp.GetRequiredService<IJSRuntime>());
         builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
         builder.Services.AddScoped(sp => new Localization());
-        builder.Services.AddScoped(sp => new ApplicationState(sp.GetRequiredService<IJSRuntime>(), sp.GetRequiredService<NavigationManager>()));
+        builder.Services.AddScoped(sp => new ApplicationState(sp.GetRequiredService<IJSInProcessRuntime>(), sp.GetRequiredService<NavigationManager>()));
         builder.Services.AddScoped(sp => new ApiClient(sp.GetRequiredService<HttpClient>(), sp.GetRequiredService<ApplicationState>()));
         builder.Services.AddScoped(sp => new FirestoreDB(sp.GetRequiredService<HttpClient>(), sp.GetRequiredService<ApiClient>(), sp.GetRequiredService<ApplicationState>()));
 

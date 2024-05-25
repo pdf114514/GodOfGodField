@@ -17,15 +17,16 @@
 @code {
     string UserName = string.Empty;
 
-    protected override async Task OnInitializedAsync() {
-        await JS.SetBackgroundImage(await JS.GetElementByClassName("Content"), new(Resources.GetResource("images.screens.home.png")!));
-        UserName = AppState.UserName;
+    protected override async Task OnAfterRenderAsync(bool firstRender) {
+        if (firstRender) {
+            await JS.SetBackgroundImage(JS.GetElementByClassName("Content"), new(Resources.GetResource("images.screens.home.png")!));
+            UserName = AppState.UserName;
+        }
     }
 
     async Task Login() {
         await JS.PlayAudio(new(Resources.GetResource("audio.click.mp3")!));
         AppState.UserName = UserName.Trim();
-        await AppState.Save();
 
         if (string.IsNullOrWhiteSpace(AppState.UserName)) {
             await JS.PlayAudio(new(Resources.GetResource("audio.alert.mp3")!));
@@ -39,7 +40,6 @@
             AppState.LocalId = signup.LocalId;
             AppState.ExpiresIn = int.Parse(signup.ExpiresIn);
             AppState.RefreshToken = signup.RefreshToken;
-            await AppState.Save();
         }
 
         AccountInfo accountInfo;

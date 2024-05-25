@@ -66,7 +66,7 @@ public class ApiClient {
         return (await response.Content.ReadFromJsonAsync<GFSession>())!;
     }
 
-public async Task<UserCount> GetUserCount() {akimotii
+    public async Task<UserCount> GetUserCount() {
         // This is not working
         // var x = await (await GetFirestore()).Collection("userCount").Document("data").GetSnapshotAsync();
         // return new() {

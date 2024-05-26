@@ -127,6 +127,17 @@ public class ApiClient {
         return (await response.Content.ReadFromJsonAsync<CreateRoomResponse>())!.RoomId;
     }
 
+    public async Task<JsonElement> GetHiddenRoom(string? roomId = null) {
+        using var request = new HttpRequestMessage(HttpMethod.Get, $"https://firestore.googleapis.com/v1/projects/godfield/databases/(default)/documents/modes/hidden/rooms/{roomId ?? AppState.RoomId}");
+        request.Headers.Authorization = new("Bearer", AppState.IdToken);
+        var response = await Http.SendAsync(request);
+        if (AutoRefresh && !response.IsSuccessStatusCode) {
+            await Refresh();
+            return await GetHiddenRoom(roomId);
+        }
+        return JsonSerializer.Deserialize<JsonElement>(await response.Content.ReadAsStringAsync());
+    }
+
     public async Task AddRoomUser(AddRoomUserRequest data) {
         using var request = new HttpRequestMessage(HttpMethod.Post, "https://asia-northeast1-godfield.cloudfunctions.net/addRoomUser");
         request.Headers.Authorization = new("Bearer", AppState.IdToken);

@@ -1,3 +1,4 @@
+using GodOfGodField.Server.Hubs;
 using GodOfGodField.Shared;
 using Microsoft.AspNetCore.ResponseCompression;
 
@@ -24,6 +25,7 @@ public class Program {
 
         builder.Services.AddControllersWithViews();
         builder.Services.AddRazorPages();
+        builder.Services.AddSignalR();
 
         var app = builder.Build();
 
@@ -47,6 +49,7 @@ public class Program {
         app.MapRazorPages();
         app.MapControllers();
         app.MapFallbackToFile("index.html");
+        app.MapHub<HiddenGameHub>(HiddenGameHub.HubUrl);
 
         app.Run();
     }

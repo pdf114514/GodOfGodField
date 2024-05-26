@@ -55,6 +55,7 @@
     static HiddenGame? _Instance;
     Task? ProcessingEventTask;
     ConcurrentQueue<HiddenRoom._Game._Event> EventQueue = new();
+    HubConnection? HubConnection;
 
     HiddenRoom? Room;
     List<HiddenRoom._Game._Player>? Players => Room?.Game?.Players;
@@ -77,8 +78,14 @@
         await JS.InvokeVoidAsync("console.clear");
         _Instance = this;
         ProcessEvent();
-        await JS.SetBackgroundImage(JS.GetElementByClassName("Content"), new(Resources.GetResource("images.screens.room.png")!));
         if (Debug) {
+            HubConnection = new HubConnectionBuilder().WithUrl($"{Navigation.BaseUri.TrimEnd('/')}/hiddengame").Build();
+            HubConnection.On<string>("EnqueueEvent", message => {
+                Console.WriteLine($"SignalR EnqueueEvent: {message}");
+                EventQueue.Enqueue(new(JsonSerializer.Deserialize<JsonElement>(message)));
+                ProcessEvent();
+            });
+            await HubConnection.StartAsync();
             return;
         }
         try {
@@ -93,6 +100,10 @@
             RoomDocumentChange(AppState.HiddenRoomDocument);
             AppState.HiddenRoomDocument = null;
         }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender) {
+        if (firstRender) await JS.SetBackgroundImage(JS.GetElementByClassName("Content"), new(Resources.GetResource("images.screens.room.png")!));
     }
 
     async void RoomDocumentChange(JsonDocument document) {

@@ -111,7 +111,8 @@ public class HiddenRoom {
 
         public _Game(JsonElement element) {
             DiseasePlayerId = element.TryGetProperty("diseasePlayerId", out var diseasePlayerId) ? diseasePlayerId.GetIntValue() : 0;
-            Events = element.GetProperty("events").GetArrayEnumerator().Select(x => new _Event(x.GetMapFieldsValue())).ToList();
+            // Events = element.GetProperty("events").GetArrayEnumerator().Select(x => new _Event(x.GetMapFieldsValue())).ToList();
+            Events = element.TryGetProperty("events", out var events) ? events.GetArrayEnumerator().Select(x => new _Event(x.GetMapFieldsValue())).ToList() : [];
             IsOver = element.TryGetProperty("isOver", out var isOver) && isOver.GetBoolValue();
             GiftPlayerIds = element.TryGetProperty("giftPlayerIds", out var giftPlayerIds) ? giftPlayerIds.GetArrayEnumerator().Select(x => x.GetIntValue()).ToList() : [];
             GuardianPlayerIds = element.TryGetProperty("guardianPlayerIds", out var guardianPlayerIds) ? guardianPlayerIds.GetArrayEnumerator().Select(x => x.GetIntValue()).ToList() : [];

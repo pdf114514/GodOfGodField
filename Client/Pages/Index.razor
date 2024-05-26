@@ -17,11 +17,12 @@
 @code {
     string UserName = string.Empty;
 
-    protected override async Task OnAfterRenderAsync(bool firstRender) {
-        if (firstRender) {
-            await JS.SetBackgroundImage(JS.GetElementByClassName("Content"), new(Resources.GetResource("images.screens.home.png")!));
-            UserName = AppState.UserName;
-        }
+    protected override void OnInitialized() {
+        UserName = AppState.UserName;
+    }
+
+        protected override async Task OnAfterRenderAsync(bool firstRender) {
+        if (firstRender) await JS.SetBackgroundImage(JS.GetElementByClassName("Content"), new(Resources.GetResource("images.screens.home.png")!));
     }
 
     async Task Login() {

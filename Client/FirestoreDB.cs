@@ -15,7 +15,7 @@ public class FirestoreDB {
     private int AndroidId = 0;
     private int TargetId = 0;
     private int Offset = -1;
-    private readonly Dictionary<int, string> Targets = new();
+    private readonly Dictionary<int, string> Targets = [];
     private GFSession Session = null!;
     private ListeningChannel Channel = new();
 

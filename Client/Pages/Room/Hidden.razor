@@ -41,22 +41,33 @@
     HiddenRoom? Room;
 
     protected override async Task OnInitializedAsync() {
-        await JS.SetBackgroundImage(JS.GetElementByClassName("Content"), new(Resources.GetResource("images.screens.room.png")!));
         try {
             AppState.RoomId = await Api.CreateRoom();
             await Api.AddRoomUser(new() { RoomId = AppState.RoomId, UserName = AppState.UserName });
+            Room = new((await Api.GetHiddenRoom()).GetProperty("fields")!.Deserialize<JsonDocument>());
+            if (Room.Game is not null) {
+                Navigation.NavigateTo("/rooms/hidden/game");
+                return;
+            }
             try {
                 await Firestore.AddTarget($"projects/godfield/databases/(default)/documents/modes/hidden/rooms/{AppState.RoomId}");
                 await Firestore.AddTarget($"projects/godfield/databases/(default)/documents/modes/hidden/comments/{AppState.RoomId}");
                 var channel = await Firestore.GetChannel();
+                channel.RemoveAllDocumentChangeListeners();
                 channel.AddDocumentChangeListener($"projects/godfield/databases/(default)/documents/modes/hidden/rooms/{AppState.RoomId}", RoomDocumentChange);
                 // channel.AddDocumentDeleteListener($"projects/godfield/databases/(default)/documents/modes/hidden/rooms/{AppState.RoomId}", RoomDocumentDelete);
             } catch (Exception e) {
-                await JS.CError(e.ToString());
+                // await JS.CError(e.ToString());
+                throw;
             }
         } catch (Exception e) {
-            await JS.CError(e.ToString());
+            // await JS.CError(e.ToString());
+            throw;
         }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender) {
+        if (firstRender) await JS.SetBackgroundImage(JS.GetElementByClassName("Content"), new(Resources.GetResource("images.screens.room.png")!));
     }
 
     async void RoomDocumentChange(JsonDocument document) {
@@ -69,11 +80,6 @@
             await Firestore.RemoveAllTargets();
             AppState.HiddenRoomDocument = document;
             Navigation.NavigateTo("/rooms/hidden/game");
-        }
-        if (Room is null) {
-            Room = room;
-            StateHasChanged();
-            return;
         }
 
         if (Room.Entries is not null && room.Entries is not null) {

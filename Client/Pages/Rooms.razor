@@ -33,7 +33,6 @@
 
     protected override async Task OnInitializedAsync() {
         RoomPassword = AppState.RoomPassword;
-        await JS.SetBackgroundImage(JS.GetElementByClassName("Content"), new(Resources.GetResource("images.screens.menu.png")!));
         try {
             UserCount = await Api.GetUserCount();
         } catch {
@@ -44,7 +43,11 @@
         StateHasChanged();
     }
 
-    async Task ButtonTraining() {
+        protected override async Task OnAfterRenderAsync(bool firstRender) {
+            if (firstRender) await JS.SetBackgroundImage(JS.GetElementByClassName("Content"), new(Resources.GetResource("images.screens.menu.png")!));
+        }
+
+        async Task ButtonTraining() {
         await JS.PlayAudio(new(Resources.GetResource("audio.click.mp3")!));
         Navigation.NavigateTo("/rooms/training");
     }

@@ -1,0 +1,8 @@
+@page "/debug"
+
+<div>
+    <h1>Debug</h1>
+
+    <button @onclick="@(() => Http.PostAsync("/hiddengame/newplayer", null))">New player</button>
+    <button @onclick="@(() => Http.PostAsync("/hiddengame/advanceturn", null))">Advance turn</button>
+</div>

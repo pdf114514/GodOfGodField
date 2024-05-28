@@ -35,21 +35,7 @@
             return;
         }
 
-        if (string.IsNullOrEmpty(AppState.IdToken)) {
-            var signup = await Api.SignUp();
-            AppState.IdToken = signup.IdToken;
-            AppState.LocalId = signup.LocalId;
-            AppState.ExpiresIn = int.Parse(signup.ExpiresIn);
-            AppState.RefreshToken = signup.RefreshToken;
-        }
-
-        AccountInfo accountInfo;
-        try {
-            accountInfo = await Api.GetAccountInfo();
-        } catch {
-            await Api.Refresh();
-            accountInfo = await Api.GetAccountInfo();
-        }
+        await Firebase.SignIn();
 
         // await JS.Alert(System.Text.Json.JsonSerializer.Serialize(accountInfo));
 

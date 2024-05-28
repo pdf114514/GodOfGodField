@@ -13,6 +13,7 @@ public class Program {
         builder.RootComponents.Add<HeadOutlet>("head::after");
 
         builder.Services.AddScoped(sp => (IJSInProcessRuntime)sp.GetRequiredService<IJSRuntime>());
+        builder.Services.AddScoped(sp => new Firebase(sp.GetRequiredService<IJSInProcessRuntime>()));
         builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
         builder.Services.AddScoped(sp => new Localization());
         builder.Services.AddScoped(sp => new ApplicationState(sp.GetRequiredService<IJSInProcessRuntime>(), sp.GetRequiredService<NavigationManager>()));

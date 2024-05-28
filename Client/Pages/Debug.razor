@@ -5,4 +5,16 @@
 
     <button @onclick="@(() => Http.PostAsync("/hiddengame/newplayer", null))">New player</button>
     <button @onclick="@(() => Http.PostAsync("/hiddengame/advanceturn", null))">Advance turn</button>
+    <button @onclick="@(async () => await Firebase.SignIn())">Firebase SignIn</button>
+    <button @onclick="@(() => FirebaseTest())">Firebase subscribe</button>
 </div>
+
+@code {
+    static Func<ValueTask>? UnSubscribe;
+    async void FirebaseTest() {
+        await Firebase.Subscribe("userCount/data", (string id, object data) => {
+            Console.WriteLine(data);
+            Firebase.Unsubscribe(id);
+        });
+    }
+}

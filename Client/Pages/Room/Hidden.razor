@@ -44,18 +44,21 @@
         try {
             AppState.RoomId = await Api.CreateRoom();
             await Api.AddRoomUser(new() { RoomId = AppState.RoomId, UserName = AppState.UserName });
-            Room = new((await Api.GetHiddenRoom()).GetProperty("fields")!.Deserialize<JsonDocument>());
-            if (Room.Game is not null) {
-                Navigation.NavigateTo("/rooms/hidden/game");
-                return;
-            }
+            // Room = new((await Api.GetHiddenRoom()).GetProperty("fields")!.Deserialize<JsonDocument>());
+            // if (Room.Game is not null) {
+            //     Navigation.NavigateTo("/rooms/hidden/game");
+            //    return;
+            // }
             try {
-                await Firestore.AddTarget($"projects/godfield/databases/(default)/documents/modes/hidden/rooms/{AppState.RoomId}");
-                await Firestore.AddTarget($"projects/godfield/databases/(default)/documents/modes/hidden/comments/{AppState.RoomId}");
-                var channel = await Firestore.GetChannel();
-                channel.RemoveAllDocumentChangeListeners();
-                channel.AddDocumentChangeListener($"projects/godfield/databases/(default)/documents/modes/hidden/rooms/{AppState.RoomId}", RoomDocumentChange);
+                // await Firestore.AddTarget($"projects/godfield/databases/(default)/documents/modes/hidden/rooms/{AppState.RoomId}");
+                // await Firestore.AddTarget($"projects/godfield/databases/(default)/documents/modes/hidden/comments/{AppState.RoomId}");
+                // var channel = await Firestore.GetChannel();
+                // channel.RemoveAllDocumentChangeListeners();
+                // channel.AddDocumentChangeListener($"projects/godfield/databases/(default)/documents/modes/hidden/rooms/{AppState.RoomId}", RoomDocumentChange);
                 // channel.AddDocumentDeleteListener($"projects/godfield/databases/(default)/documents/modes/hidden/rooms/{AppState.RoomId}", RoomDocumentDelete);
+                await Firebase.Subscribe($"/modes/hidden/rooms/{AppState.RoomId}", (id, obj) => {
+                    RoomDocumentChange(JsonSerializer.Deserialize<JsonDocument>(JsonSerializer.Serialize(obj)));
+                });
             } catch (Exception e) {
                 // await JS.CError(e.ToString());
                 throw;
@@ -73,6 +76,12 @@
     async void RoomDocumentChange(JsonDocument document) {
         await JS.InvokeVoidAsync("console.dir", document.RootElement.Deserialize<object>());
         var room = new HiddenRoom(document);
+        if (Room is null) {
+            Room = room;
+            StateHasChanged();
+            return;
+        }
+        await JS.InvokeVoidAsync("console.log", JsonSerializer.Serialize(room));
         if (room.Game is not null) {
             var channel = await Firestore.GetChannel();
             channel.RemoveAllDocumentChangeListeners();
@@ -89,6 +98,7 @@
                 await JS.PlayAudio(new(Resources.GetResource("audio.remove-entry-user.mp3")!));
             }
         }
+        Console.WriteLine("2");
 
         Room = room;
         StateHasChanged();

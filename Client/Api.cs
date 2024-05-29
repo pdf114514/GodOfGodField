@@ -48,7 +48,7 @@ public class ApiClient {
     public async Task Refresh() {
         if (DateTime.Now - LastRefresh < TimeSpan.FromMinutes(5)) throw new("Cannot refresh token more than once in 5 minutes.");
         var refresh = await RefreshToken();
-        AppState.IdToken = refresh.IdToken;
+        // AppState.IdToken = refresh.IdToken;
         AppState.RefreshToken = refresh.RefreshToken;
         AppState.ExpiresIn = int.Parse(refresh.ExpiresIn);
         AppState.LocalId = refresh.UserId;

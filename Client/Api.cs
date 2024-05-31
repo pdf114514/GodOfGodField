@@ -7,15 +7,17 @@ namespace GodOfGodField.Client;
 public class ApiClient {
     private readonly HttpClient Http;
     private readonly ApplicationState AppState;
+    private readonly Firebase Firebase;
 
     public static readonly string FirebaseKey = "AIzaSyCBvMvZkHymK04BfEaERtbmELhyL8-mtAg";
 
     public bool AutoRefresh { get; init; } = true;
     private DateTime LastRefresh = DateTime.MinValue;
 
-    public ApiClient(HttpClient http, ApplicationState appState) {
+    public ApiClient(HttpClient http, ApplicationState appState, Firebase firebase) {
         Http = http;
         AppState = appState;
+        Firebase = firebase;
     }
 
     public async Task<SignUpResponse> SignUp() {
@@ -46,6 +48,7 @@ public class ApiClient {
     }
 
     public async Task Refresh() {
+        throw new NotImplementedException();
         if (DateTime.Now - LastRefresh < TimeSpan.FromMinutes(5)) throw new("Cannot refresh token more than once in 5 minutes.");
         var refresh = await RefreshToken();
         // AppState.IdToken = refresh.IdToken;
@@ -57,7 +60,7 @@ public class ApiClient {
 
     public async Task<GFSession> GetSession() {
         var request = new HttpRequestMessage(HttpMethod.Post, "/api/getsession");
-        request.Headers.Authorization = new("Bearer", AppState.IdToken);
+        request.Headers.Authorization = new("Bearer", await Firebase.GetIdToken());
         var response = await Http.SendAsync(request);
         if (AutoRefresh && !response.IsSuccessStatusCode) {
             await Refresh();
@@ -75,7 +78,7 @@ public class ApiClient {
         //     Duel = int.Parse(x.GetValue<int>("duel").ToString())
         // };
         using var request = new HttpRequestMessage(HttpMethod.Get, "https://firestore.googleapis.com/v1/projects/godfield/databases/(default)/documents/userCount/data");
-        request.Headers.Authorization = new("Bearer", AppState.IdToken);
+        request.Headers.Authorization = new("Bearer", await Firebase.GetIdToken());
         using var response = await Http.SendAsync(request);
         if (AutoRefresh && !response.IsSuccessStatusCode) {
             await Refresh();
@@ -83,15 +86,15 @@ public class ApiClient {
         }
         var json = JsonSerializer.Deserialize<JsonElement>(await response.Content.ReadAsStringAsync())!.GetProperty("fields");
         return new() {
-            Training = json.GetProperty("training").GetIntValue(),
-            Hidden = json.GetProperty("hidden").GetIntValue(),
-            Duel = json.GetProperty("duel").GetIntValue()
+            Training = json.GetProperty("training").GetInt32(),
+            Hidden = json.GetProperty("hidden").GetInt32(),
+            Duel = json.GetProperty("duel").GetInt32()
         };
     }
 
     public async Task<DuelRecord> GetDuelRecord() {
-        using var request = new HttpRequestMessage(HttpMethod.Get, $"https://firestore.googleapis.com/v1/projects/godfield/databases/(default)/documents/records/{AppState.LocalId}");
-        request.Headers.Authorization = new("Bearer", AppState.IdToken);
+        using var request = new HttpRequestMessage(HttpMethod.Get, $"https://firestore.googleapis.com/v1/projects/godfield/databases/(default)/documents/records/{Firebase.GetUid()}");
+        request.Headers.Authorization = new("Bearer", await Firebase.GetIdToken());
         using var response = await Http.SendAsync(request);
         if (AutoRefresh && !response.IsSuccessStatusCode) {
             await Refresh();
@@ -99,15 +102,15 @@ public class ApiClient {
         }
         var json = JsonSerializer.Deserialize<JsonElement>(await response.Content.ReadAsStringAsync());
         return new() {
-            Rating = json.GetProperty("fields").GetProperty("rating").GetIntValue(),
-            GameCount = json.GetProperty("fields").GetProperty("gameCount").GetIntValue(),
-            EnemyUserIds = json.GetProperty("enemyUserIds").GetArrayEnumerator().Select(x => x.GetStringValue()).ToArray()
+            Rating = json.GetProperty("fields").GetProperty("rating").GetInt32(),
+            GameCount = json.GetProperty("fields").GetProperty("gameCount").GetInt32(),
+            EnemyUserIds = json.GetProperty("enemyUserIds").EnumerateArray().Select(x => x.GetString()!).ToArray()
         };
     }
 
     public async Task AddDuelUser(AddDuelUserRequest? data = null) {
         using var request = new HttpRequestMessage(HttpMethod.Post, "https://asia-northeast1-godfield.cloudfunctions.net/addDuelUser");
-        request.Headers.Authorization = new("Bearer", AppState.IdToken);
+        request.Headers.Authorization = new("Bearer", await Firebase.GetIdToken());
         request.Content = new StringContent(JsonSerializer.Serialize(data ?? new() { Lang = "ja", Mode = "duel", UserName = AppState.UserName }), null, "application/json");
         if (await Http.SendAsync(request) is var response && AutoRefresh && !response.IsSuccessStatusCode) {
             await Refresh();
@@ -117,7 +120,7 @@ public class ApiClient {
 
     public async Task<string> CreateRoom(CreateRoomRequest? data = null) {
         using var request = new HttpRequestMessage(HttpMethod.Post, "https://asia-northeast1-godfield.cloudfunctions.net/createRoom");
-        request.Headers.Authorization = new("Bearer", AppState.IdToken);
+        request.Headers.Authorization = new("Bearer", await Firebase.GetIdToken());
         request.Content = new StringContent(JsonSerializer.Serialize(data ?? new() { Mode = "hidden", Password = AppState.RoomPassword, UserName = AppState.UserName }), null, "application/json");
         using var response = await Http.SendAsync(request);
         if (AutoRefresh && !response.IsSuccessStatusCode) {
@@ -129,7 +132,7 @@ public class ApiClient {
 
     public async Task<JsonElement> GetHiddenRoom(string? roomId = null) {
         using var request = new HttpRequestMessage(HttpMethod.Get, $"https://firestore.googleapis.com/v1/projects/godfield/databases/(default)/documents/modes/hidden/rooms/{roomId ?? AppState.RoomId}");
-        request.Headers.Authorization = new("Bearer", AppState.IdToken);
+        request.Headers.Authorization = new("Bearer", await Firebase.GetIdToken());
         var response = await Http.SendAsync(request);
         if (AutoRefresh && !response.IsSuccessStatusCode) {
             await Refresh();
@@ -140,7 +143,7 @@ public class ApiClient {
 
     public async Task AddRoomUser(AddRoomUserRequest data) {
         using var request = new HttpRequestMessage(HttpMethod.Post, "https://asia-northeast1-godfield.cloudfunctions.net/addRoomUser");
-        request.Headers.Authorization = new("Bearer", AppState.IdToken);
+        request.Headers.Authorization = new("Bearer", await Firebase.GetIdToken());
         request.Content = new StringContent(JsonSerializer.Serialize(data), null, "application/json");
         var response = await Http.SendAsync(request);
         if (AutoRefresh && !response.IsSuccessStatusCode) {
@@ -151,7 +154,7 @@ public class ApiClient {
 
     public async Task RemoveRoomUser(RemoveRoomUserRequest? data = null) {
         using var request = new HttpRequestMessage(HttpMethod.Post, "https://asia-northeast1-godfield.cloudfunctions.net/removeRoomUser");
-        request.Headers.Authorization = new("Bearer", AppState.IdToken);
+        request.Headers.Authorization = new("Bearer", await Firebase.GetIdToken());
         request.Content = new StringContent(JsonSerializer.Serialize(data ?? new() { Mode = "hidden", RoomId = AppState.RoomId }), null, "application/json");
         if (await Http.SendAsync(request) is var response && AutoRefresh && !response.IsSuccessStatusCode) {
             await Refresh();
@@ -162,7 +165,7 @@ public class ApiClient {
     public Task SetEntryUser(int teamId) => SetEntryUser(new SetEntryUserRequest() { Mode = "hidden", RoomId = AppState.RoomId, Team = teamId });
     public async Task SetEntryUser(SetEntryUserRequest data) {
         using var request = new HttpRequestMessage(HttpMethod.Post, "https://asia-northeast1-godfield.cloudfunctions.net/setEntryUser");
-        request.Headers.Authorization = new("Bearer", AppState.IdToken);
+        request.Headers.Authorization = new("Bearer", await Firebase.GetIdToken());
         request.Content = new StringContent(JsonSerializer.Serialize(data), null, "application/json");
         if (await Http.SendAsync(request) is var response && AutoRefresh && !response.IsSuccessStatusCode) {
             await Refresh();
@@ -172,7 +175,7 @@ public class ApiClient {
 
     public async Task ShuffleTeams(ShuffleTeamsRequest? data = null) {
         using var request = new HttpRequestMessage(HttpMethod.Post, "https://asia-northeast1-godfield.cloudfunctions.net/shuffleTeams");
-        request.Headers.Authorization = new("Bearer", AppState.IdToken);
+        request.Headers.Authorization = new("Bearer", await Firebase.GetIdToken());
         request.Content = new StringContent(JsonSerializer.Serialize(data ?? new() { Mode = "hidden", RoomId = AppState.RoomId }), null, "application/json");
         if (await Http.SendAsync(request) is var response && AutoRefresh && !response.IsSuccessStatusCode) {
             await Refresh();
@@ -182,7 +185,7 @@ public class ApiClient {
 
     public async Task AddGame(AddGameRequest? data = null) {
         using var request = new HttpRequestMessage(HttpMethod.Post, "https://asia-northeast1-godfield.cloudfunctions.net/addGame");
-        request.Headers.Authorization = new("Bearer", AppState.IdToken);
+        request.Headers.Authorization = new("Bearer", await Firebase.GetIdToken());
         request.Content = new StringContent(JsonSerializer.Serialize(data ?? new() { Mode = "hidden", RoomId = AppState.RoomId }), null, "application/json");
         if (await Http.SendAsync(request) is var response && AutoRefresh && !response.IsSuccessStatusCode) {
             await Refresh();
@@ -192,7 +195,7 @@ public class ApiClient {
 
     public async Task RemoveGame(RemoveGameRequest? data = null) {
         using var request = new HttpRequestMessage(HttpMethod.Post, "https://asia-northeast1-godfield.cloudfunctions.net/removeGame");
-        request.Headers.Authorization = new("Bearer", AppState.IdToken);
+        request.Headers.Authorization = new("Bearer", await Firebase.GetIdToken());
         request.Content = new StringContent(JsonSerializer.Serialize(data ?? new() { Mode = "hidden", RoomId = AppState.RoomId }), null, "application/json");
         if (await Http.SendAsync(request) is var response && AutoRefresh && !response.IsSuccessStatusCode) {
             await Refresh();
@@ -203,7 +206,7 @@ public class ApiClient {
     public Task UpdateGame(int[] itemIds, int? targetPlayerId = null) => UpdateGame(new UpdateGameRequest() { Mode = "hidden", RoomId = AppState.RoomId, Command = new() { ItemIds = itemIds, TargetPlayerId = targetPlayerId } });
     public async Task UpdateGame(UpdateGameRequest data) {
         using var request = new HttpRequestMessage(HttpMethod.Post, "https://asia-northeast1-godfield.cloudfunctions.net/updateGame");
-        request.Headers.Authorization = new("Bearer", AppState.IdToken);
+        request.Headers.Authorization = new("Bearer", await Firebase.GetIdToken());
         request.Content = new StringContent(JsonSerializer.Serialize(data), null, "application/json");
         if (await Http.SendAsync(request) is var response && AutoRefresh && !response.IsSuccessStatusCode) {
             await Refresh();

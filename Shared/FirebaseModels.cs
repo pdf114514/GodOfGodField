@@ -70,7 +70,12 @@ public class HiddenRoom {
                 public int? FakeModelId { get; set; }
 
                 public _Item(JsonElement element) {
-                    Id = element.GetProperty("id").GetInt32();
+                    if (!element.TryGetProperty("id", out var id)) {
+                        Id = -1;
+                        ModelId = -1;
+                        return;
+                    }
+                    Id = id.GetInt32();
                     ModelId = element.GetProperty("modelId").GetInt32();
                     Used = element.TryGetProperty("used", out var used) ? used.GetBoolean() : null;
                     FakeModelId = element.TryGetProperty("fakeModelId", out var fakeModelId) ? fakeModelId.GetInt32() : 0;
@@ -83,11 +88,11 @@ public class HiddenRoom {
             }
 
             public _Player(JsonElement element) {
-                HP = element.TryGetProperty("hp", out var hp) ? hp.GetIntValue() : 0;
-                MP = element.TryGetProperty("mp", out var mp) ? mp.GetIntValue() : 0;
-                CP = element.TryGetProperty("cp", out var cp) ? cp.GetIntValue() : 0;
+                HP = element.TryGetProperty("hp", out var hp) ? hp.GetInt32() : 0;
+                MP = element.TryGetProperty("mp", out var mp) ? mp.GetInt32() : 0;
+                CP = element.TryGetProperty("cp", out var cp) ? cp.GetInt32() : 0;
                 Id = element.GetProperty("id").GetInt32();
-                Team = element.TryGetProperty("team", out var team) ? team.GetIntValue() : 0;
+                Team = element.TryGetProperty("team", out var team) ? team.GetInt32() : 0;
                 // Items = element.GetProperty("items").GetArrayEnumerator().Select(x => x.GetMap().TryGetFields(out var fields) ? new _Item(fields) : new _Item()).ToList();
                 Items = element.GetProperty("items").EnumerateArray().Select(x => new _Item(x)).ToList();
                 Name = element.GetProperty("name").GetString()!;

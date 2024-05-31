@@ -12,7 +12,7 @@ public class Firebase {
         JS = js;
     }
 
-    public ValueTask SignIn() => JS.InvokeVoidAsync("FirebaseSignIn");
+    public ValueTask  SignIn() => JS.InvokeVoidAsync("FirebaseSignIn");
 
     public async Task<string> Subscribe(string docPath, Action<string, object?> func) {
         var id = Guid.NewGuid().ToString();
@@ -32,6 +32,10 @@ public class Firebase {
         }
         Callbacks.Clear();
     }
+
+    public ValueTask<string> GetIdToken(bool forceRefresh = false) => JS.InvokeAsync<string>("FirebaseGetIdToken", forceRefresh);
+
+    public string GetUid() => JS.Invoke<string>("FirebaseGetUid");
 
     [JSInvokable]
     public static async Task OnFirebaseReceived(string id, object data) {

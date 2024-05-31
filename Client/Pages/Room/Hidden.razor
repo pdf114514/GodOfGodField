@@ -24,7 +24,7 @@
             <div @onclick="() => ButtonEntryTeam(4)" />
         </div>
     </div>
-    <div style="visibility: @(Room is not null && Room.Users.First().Id == AppState.LocalId ? "inherit" : "hidden")">
+    <div style="visibility: @(Room is not null && Room.Users.First().Id == Firebase.GetUid() ? "inherit" : "hidden")">
         <div @onclick="ButtonShuffleTeams">@L["texts.entry.shuffleTeams"]</div>
         <div @onclick="ButtonAddGame">@L["texts.entry.addGame"]</div>
     </div>
@@ -83,10 +83,6 @@
         }
         await JS.InvokeVoidAsync("console.log", JsonSerializer.Serialize(room));
         if (room.Game is not null) {
-            var channel = await Firestore.GetChannel();
-            channel.RemoveAllDocumentChangeListeners();
-            channel.RemoveAllDocumentDeleteListeners();
-            await Firestore.RemoveAllTargets();
             AppState.HiddenRoomDocument = document;
             Navigation.NavigateTo("/rooms/hidden/game");
         }
@@ -98,7 +94,6 @@
                 await JS.PlayAudio(new(Resources.GetResource("audio.remove-entry-user.mp3")!));
             }
         }
-        Console.WriteLine("2");
 
         Room = room;
         StateHasChanged();

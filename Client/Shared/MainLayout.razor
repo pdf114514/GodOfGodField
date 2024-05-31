@@ -55,21 +55,21 @@
                 await Api.RemoveRoomUser();
                 await CleanUp();
             } catch {}
-            await JS.InvokeVoidAsync("history.go", -2);
+            // await JS.InvokeVoidAsync("history.go", -2);
+            Navigation.NavigateTo("/rooms");
         } else if (Navigation.Uri.EndsWith("/rooms/hidden")) {
             try {
                 await Api.RemoveRoomUser();
                 await CleanUp();
             } catch {}
             await JS.InvokeVoidAsync("history.back");
+        } else if (Navigation.Uri.EndsWith("/rooms")) {
+            Navigation.NavigateTo("/");
         }
         else await JS.InvokeVoidAsync("history.back");
-    }
+    } 
 
     async Task CleanUp() {
-        await Firestore.RemoveAllTargets();
-        var channel = await Firestore.GetChannel();
-        channel.RemoveAllDocumentChangeListeners();
-        channel.RemoveAllDocumentDeleteListeners();
+        await Firebase.UnsubscribeAll();
     }
 }

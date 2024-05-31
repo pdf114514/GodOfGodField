@@ -1,6 +1,6 @@
 // importing from saved cause error wtf
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { initializeAuth, browserLocalPersistence, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { initializeAuth, browserLocalPersistence, signInAnonymously, getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { initializeFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const app = initializeApp({
@@ -25,3 +25,7 @@ window.FirestoreUnsubscribe = (id) => {
     unsubs[id]();
     delete unsubs[id];
 };
+
+window.FirebaseGetIdToken = async (forceRefresh) => await auth.currentUser.getIdToken(forceRefresh);
+
+window.FirebaseGetUid = () => auth.currentUser.uid;

@@ -10,12 +10,12 @@
             }
             <div class="ActionMenuLeftSide">
                 <PlayerName Player=TurnPlayer />
-                <PlayerActionField Player=TurnPlayer TextVisible=true SelectedItems=TurnPlayerSelectedItems OnClick="TurnPlayerActionFieldClick" OnMouseOverItem="ShowItemDescription" @ref="ActionFieldLeftSide" />
+                <PlayerActionField Player=TurnPlayer TurnPlayer=Attacking TextVisible=Attacking SelectedItems=TurnPlayerSelectedItems OnClick="TurnPlayerActionFieldClick" OnMouseOverItem="ShowItemDescription" @ref="ActionFieldLeftSide" />
             </div>
             <div class="Arrow" data-direction="@ArrowDirection.ToString()" />
             <div class="ActionMenuRightSide">
                 <PlayerName Player=TargetPlayer />
-                <PlayerActionField Player=TargetPlayer TextVisible=true SelectedItems=TargetPlayerSelectedItems OnClick="TargetPlayerActionFieldClick" OnMouseOverItem="ShowItemDescription" @ref="ActionFieldRightSide" />
+                <PlayerActionField Player=TargetPlayer TurnPlayer=Defending TextVisible=Defending SelectedItems=TargetPlayerSelectedItems OnClick="TargetPlayerActionFieldClick" OnMouseOverItem="ShowItemDescription" @ref="ActionFieldRightSide" />
             </div>
     </div>
         <div class="PlayerList">
@@ -53,7 +53,7 @@
     char ArrowDirection = ' ';
 
     static HiddenGame? _Instance;
-    Task? ProcessingEventTask;
+    // Task? ProcessingEventTask;
     ConcurrentQueue<HiddenRoom._Game._Event> EventQueue = new();
     HubConnection? HubConnection;
 
@@ -62,7 +62,7 @@
     HiddenRoom._Game._Player? LocalPlayer => Players?.FirstOrDefault(x => x.UserId == Firebase.GetUid());
     HiddenRoom._Game._Player? TargetPlayer => Players?.FirstOrDefault(x => x.Id == TargetPlayerId);
     HiddenRoom._Game._Player? TurnPlayer => Players?.FirstOrDefault(x => x.Id == TurnPlayerId);
-    bool SelectingItems = true;
+    bool SelectingItems = false;
     bool Attacking => SelectingItems && TurnPlayerId == LocalPlayer?.Id;
     bool Defending => SelectingItems && TargetPlayerId == LocalPlayer?.Id;
     bool IsLocalPlayerTurn => Attacking || Defending;
@@ -114,12 +114,13 @@
             await JS.InvokeVoidAsync("console.dir", document.RootElement.Deserialize<object>());
             var room = new HiddenRoom(document);
             if (Room is null) Room = room;
-            if (room.Game is null) {
+            Console.WriteLine($"{room.Game?.Events.Count ?? 0}, {room.Game?.Events.FirstOrDefault()?.EventName ?? "null"}, {room?.Game?.Events.Any(x => x.EventName == "startGame")}");
+            if (room?.Game is null) {
                 await Firebase.UnsubscribeAll();
                 Navigation.NavigateTo("/rooms/hidden");
                 return;
             }
-            else if (room?.Game?.Events.Any(x => x.EventName == "startGame") ?? false) return;
+            // else if (!(room?.Game?.Events.Any(x => x.EventName == "startGame") ?? false)) return;
 
             foreach (var e in room!.Game!.Events) {
                 // EventQueue.Enqueue(e);
@@ -232,6 +233,7 @@
                     await JS.Alert(L["texts.alerts.pray"]);
                     return;
                 }
+                SelectingItems = false;
                 await JS.PlayAudio(new(Resources.GetResource("audio.command.mp3")!));
                 await Api.UpdateGame(TurnPlayerSelectedItems.Select(x => x.Id).ToArray(), TargetPlayerId == -1 ? Resources.GetDataDefinitionByModelId(TurnPlayerSelectedItems.First().ModelId)?.IsWeapon(out _) ?? false ? RandomNextPlayerId() : null : TargetPlayerId);
             }
@@ -244,6 +246,7 @@
         try {
             if (Defending) {
                 Console.WriteLine("TargetPlayerActionFieldClick");
+                SelectingItems = false;
                 await JS.PlayAudio(new(Resources.GetResource("audio.command.mp3")!));
                 await Api.UpdateGame(TargetPlayerSelectedItems.Select(x => x.Id).ToArray());
             }
@@ -303,8 +306,10 @@
                     var playerId = e.Json.GetProperty("playerId").GetInt32();
                     TurnPlayerId = playerId;
                     StateHasChanged();
-                    if (playerId == LocalPlayer?.Id) await JS.PlayAudio(new(Resources.GetResource("audio.start-turn.mp3")!));
-                    else await JS.PlayAudio(new(Resources.GetResource("audio.turn-player.mp3")!));
+                    if (playerId == LocalPlayer?.Id) {
+                        SelectingItems = true;
+                        await JS.PlayAudio(new(Resources.GetResource("audio.start-turn.mp3")!));
+                    } else await JS.PlayAudio(new(Resources.GetResource("audio.turn-player.mp3")!));
                     return;
                 }
                 case "useTurnItems": {
@@ -324,6 +329,9 @@
                 }
                 case "useDefenseItems": {
                     TargetPlayerSelectedItems.Clear();
+                    if (!e.Json.TryGetProperty("items", out var itemsJson)) {
+                        return;
+                    }
                     var items = e.Json.GetProperty("items").EnumerateArray().Select(x => new HiddenRoom._Game._Player._Item(x)).ToList();
                     TargetPlayerSelectedItems.Clear();
                     foreach (var item in items) {
@@ -338,8 +346,10 @@
                     var playerId = e.Json.GetProperty("playerId").GetInt32();
                     TargetPlayerId = playerId;
                     ArrowDirection = TurnPlayerId == TargetPlayerId && TargetPlayerId == LocalPlayer?.Id ? 'L' : 'R';
-                    if (playerId == LocalPlayer?.Id) await JS.PlayAudio(new(Resources.GetResource("audio.start-turn.mp3")!));
-                    else await JS.PlayAudio(new(Resources.GetResource("audio.target-player.mp3")!));
+                    if (playerId == LocalPlayer?.Id) {
+                        SelectingItems = true;
+                        await JS.PlayAudio(new(Resources.GetResource("audio.start-turn.mp3")!));
+                    } else await JS.PlayAudio(new(Resources.GetResource("audio.target-player.mp3")!));
                     StateHasChanged();
                     return;
                 }
@@ -357,28 +367,31 @@
                 }
                 case "boostMP": {
                     var mp = e.Json.GetProperty("mp").GetInt32();
-                    ActionFieldRightSide.ShowMPText(mp);
+                    var actionField = TargetPlayerId == -1 ? ActionFieldLeftSide : ActionFieldRightSide;
+                    actionField.ShowMPText(mp);
                     await JS.PlayAudio(new(Resources.GetResource("audio.boost-mp.mp3")!));
                     await Task.Delay(1200);
-                    ActionFieldRightSide.ClearBigText();
+                    actionField.ClearBigText();
                     await Task.Delay(300);
                     return;
                 }
                 case "boostHP": {
                     var hp = e.Json.GetProperty("hp").GetInt32();
-                    ActionFieldRightSide.ShowHPText(hp);
+                    var actionField = TargetPlayerId == -1 ? ActionFieldLeftSide : ActionFieldRightSide;
+                    actionField.ShowHPText(hp);
                     await JS.PlayAudio(new(Resources.GetResource("audio.boost-hp.mp3")!));
                     await Task.Delay(1200);
-                    ActionFieldRightSide.ClearBigText();
+                    actionField.ClearBigText();
                     await Task.Delay(300);
                     return;
                 }
                 case "boostCP": {
                     var cp = e.Json.GetProperty("cp").GetInt32();
-                    ActionFieldRightSide.ShowCPText(cp);
+                    var actionField = TargetPlayerId == -1 ? ActionFieldLeftSide : ActionFieldRightSide;
+                    actionField.ShowCPText(cp);
                     await JS.PlayAudio(new(Resources.GetResource("audio.boost-cp.mp3")!));
                     await Task.Delay(1200);
-                    ActionFieldRightSide.ClearBigText();
+                    actionField.ClearBigText();
                     await Task.Delay(300);
                     return;
                 }
@@ -392,6 +405,14 @@
                 }
                 case "miss": {
                     var playerId = e.Json.GetProperty("playerId").GetInt32();
+                    return;
+                }
+                case "hit": {
+                    var playerId = e.Json.GetProperty("playerId").GetInt32();
+                    TargetPlayerId = playerId;
+                    if (playerId == LocalPlayer?.Id) {
+                        SelectingItems = true;
+                    }
                     return;
                 }
                 case "safe": {
@@ -469,9 +490,9 @@
 
     // for debug
     [JSInvokable]
-    public static void EnqueueEvent(string eventJson) {
+    public static async Task EnqueueEvent(string eventJson) {
         if (_Instance is null) return;
         // _Instance.EventQueue.Enqueue(new(JsonSerializer.Deserialize<JsonElement>(eventJson)));
-        _Instance.ProcessEvent(new(JsonSerializer.Deserialize<JsonElement>(eventJson)));
+        await _Instance.ProcessEvent(new(JsonSerializer.Deserialize<JsonElement>(eventJson)));
     }
 }

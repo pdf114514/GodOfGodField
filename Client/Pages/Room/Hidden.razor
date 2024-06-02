@@ -57,15 +57,15 @@
                 // channel.AddDocumentChangeListener($"projects/godfield/databases/(default)/documents/modes/hidden/rooms/{AppState.RoomId}", RoomDocumentChange);
                 // channel.AddDocumentDeleteListener($"projects/godfield/databases/(default)/documents/modes/hidden/rooms/{AppState.RoomId}", RoomDocumentDelete);
                 await Firebase.Subscribe($"/modes/hidden/rooms/{AppState.RoomId}", (id, obj) => {
-                    RoomDocumentChange(JsonSerializer.Deserialize<JsonDocument>(JsonSerializer.Serialize(obj)));
+                    RoomDocumentChange(JsonSerializer.Deserialize<JsonDocument>(JsonSerializer.Serialize(obj))!);
                 });
             } catch (Exception e) {
-                // await JS.CError(e.ToString());
-                throw;
+                await JS.CError(e.ToString());
+                // throw;
             }
         } catch (Exception e) {
-            // await JS.CError(e.ToString());
-            throw;
+            await JS.CError(e.ToString());
+            // throw;
         }
     }
 
@@ -79,7 +79,6 @@
         if (Room is null) {
             Room = room;
             StateHasChanged();
-            return;
         }
         await JS.InvokeVoidAsync("console.log", JsonSerializer.Serialize(room));
         if (room.Game is not null) {

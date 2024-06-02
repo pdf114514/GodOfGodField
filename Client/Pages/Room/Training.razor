@@ -3,7 +3,7 @@
 @code {
     protected override async Task OnInitializedAsync() {
         await JS.PlayAudio(new(Resources.GetResource("audio.alert.mp3")!));
-        JS.ShowMessage("Not implemented yet");
+        await JS.ShowMessage("Not implemented yet");
         await JS.InvokeVoidAsync("history.back");
     }
 }

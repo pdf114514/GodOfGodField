@@ -11,11 +11,10 @@
 </div>
 
 @code {
-    static Func<ValueTask>? UnSubscribe;
     async void FirebaseTest() {
-        await Firebase.Subscribe("userCount/data", (string id, object data) => {
+        await Firebase.Subscribe("userCount/data", async (id, data) => {
             Console.WriteLine(data);
-            Firebase.Unsubscribe(id);
+            await Firebase.Unsubscribe(id);
         });
     }
 }

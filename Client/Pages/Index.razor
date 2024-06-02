@@ -31,7 +31,7 @@
 
         if (string.IsNullOrWhiteSpace(AppState.UserName)) {
             await JS.PlayAudio(new(Resources.GetResource("audio.alert.mp3")!));
-            JS.ShowMessage(L["texts.home.userNameEmpty"]);
+            await JS.ShowMessage(L["texts.home.userNameEmpty"]);
             return;
         }
 

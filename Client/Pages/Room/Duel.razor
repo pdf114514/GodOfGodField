@@ -32,7 +32,7 @@
         IsMatchmaking = !IsMatchmaking;
         if (IsMatchmaking) {
             await JS.PlayAudio(new(Resources.GetResource("audio.disease.mp3")!));
-            JS.ShowMessage("Not implemented yet");
+            await JS.ShowMessage("Not implemented yet");
         }
     }
 }

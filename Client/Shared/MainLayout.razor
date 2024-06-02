@@ -62,7 +62,8 @@
                 await Api.RemoveRoomUser();
                 await CleanUp();
             } catch {}
-            await JS.InvokeVoidAsync("history.back");
+            Navigation.NavigateTo("/rooms");
+            // await JS.InvokeVoidAsync("history.back");
         } else if (Navigation.Uri.EndsWith("/rooms")) {
             Navigation.NavigateTo("/");
         }

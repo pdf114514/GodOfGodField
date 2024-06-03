@@ -145,7 +145,7 @@ public class HiddenRoom {
 
     public HiddenRoom(JsonDocument document) {
         Password = document.RootElement.GetProperty("password").GetString()!;
-        Users = document.RootElement.GetProperty("users").EnumerateArray().Select(x => new _User(x)).ToList();
+        Users = document.RootElement.TryGetProperty("users", out var users) ? users.EnumerateArray().Select(x => new _User(x)).ToList() : [];
         if (document.RootElement.EnumerateObject().Any(x => x.NameEquals("entry"))) {
             var entry = document.RootElement.GetProperty("entry");
             Entries = entry.TryGetProperty("users", out var entries) ? entries.EnumerateArray().Select(x => new _UserEntry(x)).ToList() : [];

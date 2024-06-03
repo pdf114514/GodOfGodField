@@ -17,7 +17,7 @@ const unsubs = {};
 window.FirebaseSignIn = async () => await signInAnonymously(auth);
 
 window.FirestoreSubscribe = (id, docPath, funcName) => {
-    unsubs[id] =  onSnapshot(doc(db, docPath), snapshot => DotNet.invokeMethodAsync("GodOfGodField.Client", funcName, id, snapshot.exists() ? snapshot.data() : null));
+    unsubs[id] = onSnapshot(doc(db, docPath), snapshot => DotNet.invokeMethodAsync("GodOfGodField.Client", funcName, id, snapshot.exists() ? snapshot.data() : null));
     return id;
 };
 

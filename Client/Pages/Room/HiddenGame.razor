@@ -305,6 +305,7 @@
                     TargetPlayerSelectedItems.Clear();
                     var playerId = e.Json.GetProperty("playerId").GetInt32();
                     TurnPlayerId = playerId;
+                    TargetPlayerId = -1;
                     StateHasChanged();
                     if (playerId == LocalPlayer?.Id) {
                         SelectingItems = true;
